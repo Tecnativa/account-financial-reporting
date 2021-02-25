@@ -14,6 +14,7 @@ class TestOpenItems(AccountTestInvoicingCommon):
         super().setUpClass(chart_template_ref=chart_template_ref)
 
     def test_partner_filter(self):
+        self.env.user.company_id = self.env.ref("base.main_company").id
         partner_1 = self.env.ref("base.res_partner_1")
         partner_2 = self.env.ref("base.res_partner_2")
         partner_3 = self.env.ref("base.res_partner_3")
