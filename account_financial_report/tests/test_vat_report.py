@@ -6,13 +6,19 @@ import time
 from datetime import date
 
 from odoo import fields
+<<<<<<< HEAD
 from odoo.tests import tagged
+=======
+>>>>>>> [FIX] account_financial_report: Refactor tests
 from odoo.tests.common import Form
 
 from odoo.addons.account.tests.common import AccountTestInvoicingCommon
 
 
+<<<<<<< HEAD
 @tagged("post_install", "-at_install")
+=======
+>>>>>>> [FIX] account_financial_report: Refactor tests
 class TestVATReport(AccountTestInvoicingCommon):
     @classmethod
     def init_invoice(
