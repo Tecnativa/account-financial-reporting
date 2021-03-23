@@ -238,8 +238,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['debit']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['debit']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -253,8 +253,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['debit']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['debit']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -270,8 +270,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['credit']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['credit']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -285,8 +285,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['credit']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['credit']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -301,8 +301,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['balance']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['balance']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -315,8 +315,8 @@
                         />
                         <span t-att-domain="domain" res-model="account.move.line">
                             <t
-                                t-raw="account_or_group_item_object['init_bal']['balance']"
-                                t-options="{'widget': 'monetary', 'display_currency': company_currency}"
+                                t-raw="account_or_partner_object['init_bal']['balance']"
+                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
                             />
                         </span>
                     </t>
@@ -335,8 +335,8 @@
                                     res-model="account.move.line"
                                 >
                                     <t
-                                        t-raw="account_or_group_item_object['init_bal']['bal_curr']"
-                                        t-options="{'widget': 'monetary', 'display_currency': account['currency_id']}"
+                                        t-raw="account_or_partner_object['init_bal']['bal_curr']"
+                                        t-options="{'widget': 'monetary', 'display_currency': o._get_atr_from_dict(account['id'], accounts_data, 'currency_id')}"
                                     />
                                 </span>
                             </t>
@@ -352,8 +352,8 @@
                                     res-model="account.move.line"
                                 >
                                     <t
-                                        t-raw="account_or_group_item_object['init_bal']['bal_curr']"
-                                        t-options="{'widget': 'monetary', 'display_currency': account['currency_id']}"
+                                        t-raw="account_or_partner_object['init_bal']['bal_curr']"
+                                        t-options="{'widget': 'monetary', 'display_currency': o._get_atr_from_dict(account['id'], accounts_data, 'currency_id')}"
                                     />
                                 </span>
                             </t>
@@ -427,7 +427,9 @@
                             res-model="account.account"
                             view-type="form"
                         >
-                            <t t-raw="account['code']" />
+                            <t
+                                t-raw="o._get_atr_from_dict(account['id'], accounts_data, 'code')"
+                            />
                         </span>
                     </div>
                     <!--## taxes-->
@@ -591,26 +593,14 @@
                                 t-if="line_currency!=company_currency"
                             />
                             <!--## amount_currency-->
-                            <div class="act_as_cell amount" style="width: 3.63%;">
+                            <div class="act_as_cell amount" style="width: 5.19%;">
                                 <span
                                     t-att-res-id="line['id']"
                                     res-model="account.move.line"
                                     view-type="form"
-                                    t-raw="line['bal_curr']"
-                                    t-options="{'widget': 'monetary', 'display_currency': line_currency}"
-                                    t-if="line_currency!=company_currency"
-                                />
-                            </div>
-                            <!--## amount_currency cumulated-->
-                            <div class="act_as_cell amount" style="width: 3.63%;">
-                                <span
-                                    t-att-res-id="line['id']"
-                                    res-model="account.move.line"
-                                    view-type="form"
-                                    t-raw="total_bal_curr"
-                                    t-options="{'widget': 'monetary', 'display_currency': line_currency}"
-                                    t-if="line_currency!=company_currency"
-                                />
+                                >
+                                    <t t-raw="line['bal_curr']" />
+                                </span>
                             </div>
                         </t>
                         <t t-if="not line['currency_id']">

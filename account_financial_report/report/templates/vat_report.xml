@@ -72,17 +72,34 @@
                         </div>
                         <div class="act_as_cell amount" style="width: 15%;">
                             <t
-                                t-att-style="style"
-                                t-raw="tag_or_group['net']"
-                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                t-set="domain"
+                                t-value="[('tax_ids', 'in', [tax.tax_id.id for tax in tag.tax_ids]),
+                                        ('date', '&gt;=', o.date_from),
+                                        ('date', '&lt;=', o.date_to)]"
                             />
+                            <span t-att-domain="domain" res-model="account.move.line">
+                                <t
+                                    t-att-style="style"
+                                    t-raw="tag_or_group['net']"
+                                    t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                />
+                            </span>
                         </div>
                         <div class="act_as_cell amount" style="width: 15%;">
                             <t
-                                t-att-style="style"
-                                t-raw="tag_or_group['tax']"
-                                t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                t-set="domain"
+                                t-value="[('tax_line_id', 'in', [tax.tax_id.id for tax in tag.tax_ids]),
+                                        ('date', '&gt;=', o.date_from),
+                                        ('date', '&lt;=', o.date_to),
+                                        ('tax_exigible', '=', True)]"
                             />
+                            <span t-att-domain="domain" res-model="account.move.line">
+                                <t
+                                    t-att-style="style"
+                                    t-raw="tag_or_group['tax']"
+                                    t-options="{'widget': 'monetary', 'display_currency': res_company.currency_id}"
+                                />
+                            </span>
                         </div>
                     </div>
                     <t t-if="tax_detail">
@@ -94,7 +111,7 @@
                                     style="padding-left: 20px; width: 65%;"
                                 >
                                     <span
-                                        t-att-res-id="tax['id']"
+                                        t-att-res-id="tax.tax_id.id"
                                         t-att-res-model="res_model"
                                         view-type="form"
                                     >
@@ -104,9 +121,10 @@
                                 <div class="act_as_cell amount" style="width: 15%;">
                                     <t
                                         t-set="domain"
-                                        t-value="[('tax_ids', 'in', tax['id']),
-                                                ('date', '&gt;=', date_from),
-                                                ('date', '&lt;=', date_to)]+request.env['account.move.line']._get_tax_exigible_domain()"
+                                        t-value="[('tax_ids', 'in', tax.tax_id.ids),
+                                                ('date', '&gt;=', o.date_from),
+                                                ('date', '&lt;=', o.date_to),
+                                                ('tax_exigible', '=', True)]"
                                     />
                                     <span
                                         t-att-domain="domain"
@@ -122,9 +140,10 @@
                                 <div class="act_as_cell amount" style="width: 15%;">
                                     <t
                                         t-set="domain"
-                                        t-value="[('tax_line_id', '=', tax['id']),
-                                                ('date', '&gt;=', date_from),
-                                                ('date', '&lt;=', date_to)]+request.env['account.move.line']._get_tax_exigible_domain()"
+                                        t-value="[('tax_line_id', '=', tax.tax_id.id),
+                                                ('date', '&gt;=', o.date_from),
+                                                ('date', '&lt;=', o.date_to),
+                                                ('tax_exigible', '=', True)]"
                                     />
                                     <span
                                         t-att-domain="domain"

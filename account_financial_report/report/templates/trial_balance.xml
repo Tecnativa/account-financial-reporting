@@ -312,10 +312,7 @@
                             t-value="[('account_id', '=', balance['id']),
                                ('date', '&lt;', date_from)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-esc="balance['initial_balance']"
@@ -326,13 +323,10 @@
                     <t t-if="balance['type'] == 'group_type'">
                         <t
                             t-set="domain"
-                            t-value="[('account_id', 'in', balance['account_ids']),
-                                    ('date', '&lt;', date_from)]"
+                            t-value="[('account_id', 'in', line.compute_account_ids.ids),
+                                    ('date', '&lt;', date_from.strftime('%Y-%m-%d'))]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-raw="balance['initial_balance']"
@@ -348,10 +342,7 @@
                                  ('partner_id', '=', int(partner_id)),
                                  ('date', '&lt;', date_from)]"
                     />
-                    <span
-                        t-att-domain="domain+aml_domain_common"
-                        res-model="account.move.line"
-                    >
+                    <span t-att-domain="domain" res-model="account.move.line">
                         <t
                             t-att-style="style"
                             t-raw="total_amount[account_id][partner_id]['initial_balance']"
@@ -371,10 +362,7 @@
                                          ('date', '&lt;=', date_to),
                                          ('debit', '&lt;&gt;', 0)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-esc="balance['debit']"
@@ -385,15 +373,12 @@
                     <t t-if="balance['type'] == 'group_type'">
                         <t
                             t-set="domain"
-                            t-value="[('account_id', 'in', balance['account_ids']),
-                                    ('date', '&gt;=', date_from),
-                                    ('date', '&lt;=', date_to),
+                            t-value="[('account_id', 'in', line.compute_account_ids.ids),
+                                    ('date', '&gt;=', line.report_id.date_from.strftime('%Y-%m-%d')),
+                                    ('date', '&lt;=', line.report_id.date_to.strftime('%Y-%m-%d')),
                                     ('debit', '&lt;&gt;', 0)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-raw="balance['debit']"
@@ -411,10 +396,7 @@
                                  ('date', '&lt;=', date_to),
                                  ('debit', '&lt;&gt;', 0)]"
                     />
-                    <span
-                        t-att-domain="domain+aml_domain_common"
-                        res-model="account.move.line"
-                    >
+                    <span t-att-domain="domain" res-model="account.move.line">
                         <t
                             t-att-style="style"
                             t-raw="total_amount[account_id][partner_id]['debit']"
@@ -434,10 +416,7 @@
                                          ('date', '&lt;=', date_to),
                                          ('credit', '&lt;&gt;', 0)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-esc="balance['credit']"
@@ -448,15 +427,12 @@
                     <t t-if="balance['type'] == 'group_type'">
                         <t
                             t-set="domain"
-                            t-value="[('account_id', 'in', balance['account_ids']),
-                                    ('date', '&gt;=', date_from),
-                                    ('date', '&lt;=', date_to),
+                            t-value="[('account_id', 'in', line.compute_account_ids.ids),
+                                    ('date', '&gt;=', line.report_id.date_from.strftime('%Y-%m-%d')),
+                                    ('date', '&lt;=', line.report_id.date_to.strftime('%Y-%m-%d')),
                                     ('credit', '&lt;&gt;', 0)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-raw="balance['credit']"
@@ -474,10 +450,7 @@
                                  ('date', '&lt;=', date_to),
                                  ('credit', '&lt;&gt;', 0)]"
                     />
-                    <span
-                        t-att-domain="domain+aml_domain_common"
-                        res-model="account.move.line"
-                    >
+                    <span t-att-domain="domain" res-model="account.move.line">
                         <t
                             t-att-style="style"
                             t-raw="total_amount[account_id][partner_id]['credit']"
@@ -497,10 +470,7 @@
                                     ('date', '&lt;=', date_to),
                                     ('balance', '&lt;&gt;', 0)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-esc="balance['balance']"
@@ -511,14 +481,11 @@
                     <t t-if="balance['type'] == 'group_type'">
                         <t
                             t-set="domain"
-                            t-value="[('account_id', 'in', balance['account_ids']),
-                                    ('date', '&gt;=', date_from),
-                                    ('date', '&lt;=', date_to)]"
+                            t-value="[('account_id', 'in', line.compute_account_ids.ids),
+                                    ('date', '&gt;=', line.report_id.date_from.strftime('%Y-%m-%d')),
+                                    ('date', '&lt;=', line.report_id.date_to.strftime('%Y-%m-%d'))]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-raw="balance['balance']"
@@ -536,10 +503,7 @@
                                  ('date', '&lt;=', date_to),
                                  ('balance', '&lt;&gt;', 0)]"
                     />
-                    <span
-                        t-att-domain="domain+aml_domain_common"
-                        res-model="account.move.line"
-                    >
+                    <span t-att-domain="domain" res-model="account.move.line">
                         <t
                             t-att-style="style"
                             t-raw="total_amount[account_id][partner_id]['balance']"
@@ -557,10 +521,7 @@
                             t-value="[('account_id', '=', balance['id']),
                                          ('date', '&lt;=', date_to)]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-esc="balance['ending_balance']"
@@ -573,10 +534,7 @@
                             t-set="domain"
                             t-value="[('account_id', 'in', balance['account_ids'])]"
                         />
-                        <span
-                            t-att-domain="domain+aml_domain_common"
-                            res-model="account.move.line"
-                        >
+                        <span t-att-domain="domain" res-model="account.move.line">
                             <t
                                 t-att-style="style"
                                 t-raw="balance['ending_balance']"
@@ -592,10 +550,7 @@
                                  ('partner_id', '=', int(partner_id)),
                                  ('date', '&lt;=', date_to)]"
                     />
-                    <span
-                        t-att-domain="domain+aml_domain_common"
-                        res-model="account.move.line"
-                    >
+                    <span t-att-domain="domain" res-model="account.move.line">
                         <t
                             t-att-style="style"
                             t-esc="total_amount[account_id][partner_id]['ending_balance']"
@@ -616,10 +571,10 @@
                             <div class="act_as_cell amount">
                                 <t
                                     t-set="domain"
-                                    t-value="[('account_id', '=', balance['id'])]"
+                                    t-value="[('account_id', '=', line.account_id.id)]"
                                 />
                                 <span
-                                    t-att-domain="domain+aml_domain_common"
+                                    t-att-domain="domain"
                                     res-model="account.move.line"
                                 >
                                     <t
@@ -654,11 +609,11 @@
                             <div class="act_as_cell amount">
                                 <t
                                     t-set="domain"
-                                    t-value="[('account_id', '=', account_id),
-                                            ('partner_id', '=', partner_id)]"
+                                    t-value="[('account_id', '=', line.report_account_id.account_id.id),
+                                            ('partner_id', '=', line.partner_id.id)]"
                                 />
                                 <span
-                                    t-att-domain="domain+aml_domain_common"
+                                    t-att-domain="domain"
                                     res-model="account.move.line"
                                 >
                                     <t
@@ -677,10 +632,10 @@
                             <div class="act_as_cell amount">
                                 <t
                                     t-set="domain"
-                                    t-value="[('account_id', '=', balance['id'])]"
+                                    t-value="[('account_id', '=', line.account_id.id)]"
                                 />
                                 <span
-                                    t-att-domain="domain+aml_domain_common"
+                                    t-att-domain="domain"
                                     res-model="account.move.line"
                                 >
                                     <t
@@ -709,11 +664,11 @@
                             <t t-if="type == 'partner_type'">
                                 <t
                                     t-set="domain"
-                                    t-value="[('account_id', '=', account_id),
-                                            ('partner_id', '=', partner_id)]"
+                                    t-value="[('account_id', '=', line.report_account_id.account_id.id),
+                                            ('partner_id', '=', line.partner_id.id)]"
                                 />
                                 <span
-                                    t-att-domain="domain+aml_domain_common"
+                                    t-att-domain="domain"
                                     res-model="account.move.line"
                                 >
                                     <t
