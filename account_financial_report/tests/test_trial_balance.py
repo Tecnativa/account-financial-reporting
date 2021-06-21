@@ -15,6 +15,9 @@ class TestTrialBalanceReport(common.TransactionCase):
         self.group1 = group_obj.create(
             {'code_prefix': '1',
              'name': 'Group 1'})
+        self.group1_bis = group_obj.create(
+            {'code_prefix': '1',
+             'name': 'Group 1 bis'})
         self.group11 = group_obj.create(
             {'code_prefix': '11',
              'name': 'Group 11',
@@ -168,6 +171,17 @@ class TestTrialBalanceReport(common.TransactionCase):
                 }
         return lines
 
+    def _get_group_lines_by_code(self, group_code, trial_balance):
+        group = next(filter(
+            lambda g: g['code'] == group_code and g['type'] == 'group_type',
+            trial_balance))
+        return {
+            'initial_balance': group['initial_balance'],
+            'debit': group['debit'],
+            'credit': group['credit'],
+            'final_balance': group['ending_balance']
+        }
+
     def check_partner_in_report(self, account_id, partner_id, total_amount):
         partner_in_report = False
         if account_id in total_amount.keys():
@@ -243,7 +257,8 @@ class TestTrialBalanceReport(common.TransactionCase):
         # Check the initial and final balance
         account_receivable_lines = self._get_account_lines(
             self.account100.id, trial_balance)
-        group1_lines = self._get_group_lines(self.group1.id, trial_balance)
+        group1_lines = self._get_group_lines_by_code(
+            self.group1.code_prefix, trial_balance)
 
         self.assertEqual(account_receivable_lines['initial_balance'], 1000)
         self.assertEqual(account_receivable_lines['debit'], 0)
@@ -281,8 +296,10 @@ class TestTrialBalanceReport(common.TransactionCase):
             self.account100.id, trial_balance)
         account_income_lines = self._get_account_lines(
             self.account200.id, trial_balance)
-        group1_lines = self._get_group_lines(self.group1.id, trial_balance)
-        group2_lines = self._get_group_lines(self.group2.id, trial_balance)
+        group1_lines = self._get_group_lines_by_code(
+            self.group1.code_prefix, trial_balance)
+        group2_lines = self._get_group_lines_by_code(
+            self.group2.code_prefix, trial_balance)
 
         self.assertEqual(account_receivable_lines['initial_balance'], 1000)
         self.assertEqual(account_receivable_lines['debit'], 0)
@@ -329,8 +346,10 @@ class TestTrialBalanceReport(common.TransactionCase):
             self.account100.id, trial_balance)
         account_income_lines = self._get_account_lines(
             self.account200.id, trial_balance)
-        group1_lines = self._get_group_lines(self.group1.id, trial_balance)
-        group2_lines = self._get_group_lines(self.group2.id, trial_balance)
+        group1_lines = self._get_group_lines_by_code(
+            self.group1.code_prefix, trial_balance)
+        group2_lines = self._get_group_lines_by_code(
+            self.group2.code_prefix, trial_balance)
 
         self.assertEqual(account_receivable_lines['initial_balance'], 1000)
         self.assertEqual(account_receivable_lines['debit'], 0)
