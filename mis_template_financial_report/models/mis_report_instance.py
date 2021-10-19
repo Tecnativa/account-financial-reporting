@@ -3,15 +3,29 @@
 import copy
 from collections import OrderedDict
 
-from odoo import api, models
+from odoo import api, fields, models
 
 
 class MisReportInstance(models.Model):
     _inherit = "mis.report.instance"
 
+    allow_horizontal = fields.Boolean(compute="_compute_allow_horizontal")
+    horizontal = fields.Boolean()
+
+    @api.depends("report_id")
+    def _compute_allow_horizontal(self):
+        """Indicate that the instance supports horizontal rendering."""
+        for instance in self:
+            instance.allow_horizontal = set(
+                instance.report_id.get_external_id().values()
+            ) & {
+                "mis_template_financial_report.report_bs",
+                "mis_template_financial_report.report_pl",
+            }
+
     @api.multi
     def compute(self):
-        if not self._is_horizontal():
+        if not self.horizontal:
             return super().compute()
 
         full_matrix = self._compute_matrix()
@@ -24,15 +38,6 @@ class MisReportInstance(models.Model):
         ]
 
         return result
-
-    @api.multi
-    def _is_horizontal(self):
-        """Determine if the report template is a horizontal one"""
-        self.ensure_one()
-        return set(self.report_id.get_external_id().values()) & {
-            "mis_template_financial_report.report_bs",
-            "mis_template_financial_report.report_pl",
-        }
 
     @api.multi
     def _compute_horizontal_matrices(self, matrix=None):
