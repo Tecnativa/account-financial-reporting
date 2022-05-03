@@ -23,7 +23,6 @@ class MisReportInstance(models.Model):
                 "mis_template_financial_report.report_pl",
             }
 
-    @api.multi
     def compute(self):
         if not self.horizontal:
             return super().compute()
@@ -39,7 +38,6 @@ class MisReportInstance(models.Model):
 
         return result
 
-    @api.multi
     def _compute_horizontal_matrices(self, matrix=None):
         """Compute the matrix (if not passed) and return the split versions"""
         return self._split_matrix(
@@ -53,7 +51,6 @@ class MisReportInstance(models.Model):
             ],
         )
 
-    @api.multi
     def _split_matrix(self, original_matrix, kpi_defs=None, keep_remaining=True):
         """Split a matrix by duplicating it as shallowly as possible and removing
         rows according to kpi_defs
