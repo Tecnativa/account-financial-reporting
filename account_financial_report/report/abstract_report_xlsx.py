@@ -252,6 +252,9 @@ class AbstractReportXslx(models.AbstractModel):
                         cell_type = "string"
                     else:
                         cell_type = "amount_currency"
+                else:
+                    value = ""
+                    cell_type = "string"
             # All conditions according to cell type.
             if cell_type == "string":
                 if line_dict.get("type", "") == "group_type":

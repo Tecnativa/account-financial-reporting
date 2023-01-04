@@ -60,22 +60,15 @@ class TrialBalanceXslx(models.AbstractModel):
             if report.foreign_currency:
                 foreign_currency = {
                     7: {
-                        "header": _("Cur."),
-                        "field": "currency_id",
-                        "field_currency_balance": "currency_id",
-                        "type": "many2one",
-                        "width": 7,
-                    },
-                    8: {
                         "header": _("Initial balance"),
                         "field": "initial_currency_balance",
-                        "type": "amount_currency",
+                        "type": "amount_different_company_currency",
                         "width": 14,
                     },
-                    9: {
+                    8: {
                         "header": _("Ending balance"),
                         "field": "ending_currency_balance",
-                        "type": "amount_currency",
+                        "type": "amount_different_company_currency",
                         "width": 14,
                     },
                 }
@@ -118,22 +111,15 @@ class TrialBalanceXslx(models.AbstractModel):
             if report.foreign_currency:
                 foreign_currency = {
                     6: {
-                        "header": _("Cur."),
-                        "field": "currency_id",
-                        "field_currency_balance": "currency_id",
-                        "type": "many2one",
-                        "width": 7,
-                    },
-                    7: {
                         "header": _("Initial balance"),
                         "field": "initial_currency_balance",
-                        "type": "amount_currency",
+                        "type": "amount_different_company_currency",
                         "width": 14,
                     },
-                    8: {
+                    7: {
                         "header": _("Ending balance"),
                         "field": "ending_currency_balance",
-                        "type": "amount_currency",
+                        "type": "amount_different_company_currency",
                         "width": 14,
                     },
                 }
@@ -188,6 +174,7 @@ class TrialBalanceXslx(models.AbstractModel):
         foreign_currency = res_data["foreign_currency"]
         limit_hierarchy_level = res_data["limit_hierarchy_level"]
         hide_parent_hierarchy_level = res_data["hide_parent_hierarchy_level"]
+        company_currency = report.company_id.currency_id
         if not show_partner_details:
             # Display array header for account lines
             self.write_array_header(report_data)
@@ -195,6 +182,7 @@ class TrialBalanceXslx(models.AbstractModel):
         # For each account
         if not show_partner_details:
             for balance in trial_balance:
+                balance["company_currency_id"] = company_currency.id
                 if show_hierarchy:
                     if limit_hierarchy_level:
                         if show_hierarchy_level > balance["level"] and (
@@ -223,6 +211,18 @@ class TrialBalanceXslx(models.AbstractModel):
                 for partner_id in total_amount[account_id]:
                     if isinstance(partner_id, int):
                         # Display partner lines
+                        if foreign_currency:
+                            total_amount[account_id][partner_id].update(
+                                {
+                                    "currency_id": total_amount[account_id][
+                                        "currency_id"
+                                    ],
+                                    "currency_name": total_amount[account_id][
+                                        "currency_name"
+                                    ],
+                                    "company_currency_id": company_currency.id,
+                                }
+                            )
                         self.write_line_from_dict_order(
                             total_amount[account_id][partner_id],
                             partners_data[partner_id],
@@ -242,6 +242,7 @@ class TrialBalanceXslx(models.AbstractModel):
                 if foreign_currency:
                     accounts_data[account_id].update(
                         {
+                            "company_currency_id": company_currency.id,
                             "initial_currency_balance": total_amount[account_id][
                                 "initial_currency_balance"
                             ],
