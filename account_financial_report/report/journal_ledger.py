@@ -78,7 +78,7 @@ class JournalLedgerReport(models.AbstractModel):
         for move in moves:
             move_data[move.id] = self._get_moves_data(move)
             Moves.append(move_data[move.id])
-        return moves.ids, Moves, move_data
+        return moves.ids, Moves
 
     def _get_move_lines_domain(self, move_ids, wizard, journal_ids):
         return [
@@ -125,47 +125,17 @@ class JournalLedgerReport(models.AbstractModel):
             "base_balance": base_balance,
             "tax_balance": tax_balance,
             "auto_sequence": str(auto_sequence).zfill(6),
+            # Extra fields from template or xlsx
+            "move_name": ml.move_name,
+            "account_name": ml.account_id.name,
+            "account_code": ml.account_id.code,
+            "partner_name": ml.partner_id.name,
+            "currency_name": ml.currency_id.name,
+            "tax_line_description": ml.tax_line_id.description,
+            "move_line_tax_description": ",".join(
+                [t.description or t.name for t in ml.tax_ids]
+            ),
         }
-
-    def _get_account_data(self, accounts):
-        data = {}
-        for account in accounts:
-            data[account.id] = self._get_account_id_data(account)
-        return data
-
-    def _get_account_id_data(self, account):
-        return {
-            "name": account.name,
-            "code": account.code,
-            "account_type": account.account_type,
-        }
-
-    def _get_partner_data(self, partners):
-        data = {}
-        for partner in partners:
-            data[partner.id] = self._get_partner_id_data(partner)
-        return data
-
-    def _get_partner_id_data(self, partner):
-        return {"name": partner.name}
-
-    def _get_currency_data(self, currencies):
-        data = {}
-        for currency in currencies:
-            data[currency.id] = self._get_currency_id_data(currency)
-        return data
-
-    def _get_currency_id_data(self, currency):
-        return {"name": currency.name}
-
-    def _get_tax_line_data(self, taxes):
-        data = {}
-        for tax in taxes:
-            data[tax.id] = self._get_tax_line_id_data(tax)
-        return data
-
-    def _get_tax_line_id_data(self, tax):
-        return {"name": tax.name, "description": tax.description}
 
     def _get_query_taxes(self):
         return """
@@ -235,18 +205,9 @@ class JournalLedgerReport(models.AbstractModel):
             Move_Lines[ml.move_id.id].append(
                 self._get_move_lines_data(ml, wizard, taxes, auto_sequence, exigible)
             )
-        account_ids_data = self._get_account_data(accounts)
-        partner_ids_data = self._get_partner_data(partners)
-        currency_ids_data = self._get_currency_data(currencies)
-        tax_line_ids_data = self._get_tax_line_data(tax_lines)
         return (
             move_lines.ids,
             Move_Lines,
-            account_ids_data,
-            partner_ids_data,
-            currency_ids_data,
-            tax_line_ids_data,
-            move_line_ids_taxes_data,
         )
 
     def _get_journal_tax_lines(self, wizard, moves_data):
@@ -304,7 +265,7 @@ class JournalLedgerReport(models.AbstractModel):
         company = self.env["res.company"].browse(data["company_id"])
         journal_ids = data["journal_ids"]
         journal_ledgers_data = self._get_journal_ledgers(wizard, journal_ids, company)
-        move_ids, moves_data, move_ids_data = self._get_moves(wizard, journal_ids)
+        move_ids, moves_data = self._get_moves(wizard, journal_ids)
         journal_moves_data = {}
         for key, items in itertools.groupby(
             moves_data, operator.itemgetter("journal_id")
@@ -312,18 +273,10 @@ class JournalLedgerReport(models.AbstractModel):
             if key not in journal_moves_data.keys():
                 journal_moves_data[key] = []
             journal_moves_data[key] += list(items)
-        move_lines_data = (
-            account_ids_data
-        ) = (
-            partner_ids_data
-        ) = currency_ids_data = tax_line_ids_data = move_line_ids_taxes_data = {}
+        move_lines_data = {}
         if move_ids:
             move_lines = self._get_move_lines(move_ids, wizard, journal_ids)
             move_lines_data = move_lines[1]
-            account_ids_data = move_lines[2]
-            partner_ids_data = move_lines[3]
-            currency_ids_data = move_lines[4]
-            tax_line_ids_data = move_lines[5]
         for move_data in moves_data:
             move_id = move_data["move_id"]
             move_data["report_move_lines"] = []
@@ -365,12 +318,6 @@ class JournalLedgerReport(models.AbstractModel):
             "date_to": data["date_to"],
             "move_target": data["move_target"],
             "with_auto_sequence": data["with_auto_sequence"],
-            "account_ids_data": account_ids_data,
-            "partner_ids_data": partner_ids_data,
-            "currency_ids_data": currency_ids_data,
-            "move_ids_data": move_ids_data,
-            "tax_line_data": tax_line_ids_data,
-            "move_line_ids_taxes_data": move_line_ids_taxes_data,
             "Journal_Ledgers": journal_ledgers_data,
             "Moves": moves_data,
         }

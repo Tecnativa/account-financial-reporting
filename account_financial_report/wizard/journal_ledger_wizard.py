@@ -118,28 +118,6 @@ class JournalLedgerReportWizard(models.TransientModel):
         return self._print_report(report_type)
 
     @api.model
-    def _get_ml_tax_description(
-        self, move_line_data, tax_line_data, move_line_taxes_data
-    ):
-        taxes_description = ""
-        if move_line_data["tax_line_id"]:
-            taxes_description = tax_line_data["description"] or tax_line_data["name"]
-        elif move_line_taxes_data:
-            tax_names = []
-            for tax_key in move_line_taxes_data:
-                tax = move_line_taxes_data[tax_key]
-                tax_names.append(tax["description"] or tax["name"])
-            taxes_description = ",".join(tax_names)
-        return taxes_description
-
-    @api.model
-    def _get_partner_name(self, partner_id, partner_data):
-        if partner_id in partner_data.keys():
-            return partner_data[partner_id]["name"]
-        else:
-            return ""
-
-    @api.model
     def _get_atr_from_dict(self, obj_id, data, key):
         try:
             return data[obj_id][key]

@@ -222,33 +222,13 @@ class JournalLedgerXslx(models.AbstractModel):
         report_data["row_pos"] += 2
 
         self.write_array_header(report_data)
-        account_ids_data = res_data["account_ids_data"]
-        partner_ids_data = res_data["partner_ids_data"]
-        currency_ids_data = res_data["currency_ids_data"]
-        move_ids_data = res_data["move_ids_data"]
         for move in moves:
             for line in move["report_move_lines"]:
-                currency_data = currency_ids_data.get(line["currency_id"], False)
-                currency_name = currency_data and currency_data["name"] or ""
-                account_data = account_ids_data.get(line["account_id"], False)
-                account_name = account_data and account_data["name"] or ""
-                account_code = account_data and account_data["code"] or ""
-                move_data = move_ids_data.get(line["move_id"], False)
-                move_entry = move_data and move_data["entry"] or ""
-                line["partner"] = self._get_partner_name(
-                    line["partner_id"], partner_ids_data
-                )
+                line["partner"] = line["partner_name"]
                 line["auto_sequence"] = line["auto_sequence"]
-                line["account_code"] = account_code
-                line["account_name"] = account_name
-                line["currency_name"] = currency_name
-                line["entry"] = move_entry
-                line["taxes_description"] = report._get_ml_tax_description(
-                    line,
-                    res_data["tax_line_data"].get(line["tax_line_id"]),
-                    res_data["move_line_ids_taxes_data"].get(
-                        line["move_line_id"], False
-                    ),
+                line["entry"] = line["move_name"]
+                line["taxes_description"] = (
+                    line["tax_line_description"] or line["move_line_tax_description"]
                 )
                 self.write_line_from_dict(line, report_data)
             report_data["row_pos"] += 1
@@ -262,9 +242,3 @@ class JournalLedgerXslx(models.AbstractModel):
         report_data["row_pos"] = 1
         self.write_array_title(sheet_name, report_data)
         report_data["row_pos"] += 2
-
-    def _get_partner_name(self, partner_id, partner_data):
-        if partner_id in partner_data.keys():
-            return partner_data[partner_id]["name"]
-        else:
-            return ""
