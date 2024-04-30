@@ -829,6 +829,12 @@ class GeneralLedgerReport(models.AbstractModel):
             extra_domain,
             grouped_by,
         )
+        print(
+            {
+                "gen_ld_data": gen_ld_data,
+            }
+        )
+        print(asas)
         general_ledger = self._create_general_ledger(
             gen_ld_data,
             accounts_data,
