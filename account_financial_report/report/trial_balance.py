@@ -209,6 +209,24 @@ class TrialBalanceReport(models.AbstractModel):
         return total_amount
 
     @api.model
+    def _get_move_line_data(self, move_line):
+        return {
+            "id": move_line.id,
+            "date": move_line.date,
+            "entry": move_line.move_name,
+            "entry_id": move_line.move_id.id,
+            "journal_id": move_line.journal_id.id,
+            "account_id": move_line.account_id.id,
+            "analytic_account_id": move_line.analytic_account_id.id,
+            "credit": move_line.credit,
+            "debit": move_line.debit,
+            "balance": move_line.balance,
+            "amount_currency": move_line.amount_currency,
+            "analytic_account_name": move_line.analytic_account_id.name,
+            "analytic_account_code": move_line.analytic_account_id.code,
+        }
+
+    @api.model
     def _prepare_total_amount(self, tb, foreign_currency):
         res = {
             "credit": 0.0,
@@ -220,6 +238,11 @@ class TrialBalanceReport(models.AbstractModel):
         if foreign_currency:
             res["initial_currency_balance"] = round(tb["amount_currency"], 2)
             res["ending_currency_balance"] = round(tb["amount_currency"], 2)
+        if "__domain" in tb:
+            move_lines_data = []
+            for move_line in self.env["account.move.line"].search(tb["__domain"]):
+                move_lines_data.append(self._get_move_line_data(move_line))
+            res["move_lines"] = move_lines_data
         return res
 
     @api.model
@@ -633,37 +656,56 @@ class TrialBalanceReport(models.AbstractModel):
                         ] += total_amount[acc_id]["ending_currency_balance"]
         return groups_data
 
-    def _get_report_values(self, docids, data):
-        show_partner_details = data["show_partner_details"]
-        wizard_id = data["wizard_id"]
-        company = self.env["res.company"].browse(data["company_id"])
-        company_id = data["company_id"]
-        partner_ids = data["partner_ids"]
-        journal_ids = data["journal_ids"]
-        account_ids = data["account_ids"]
-        date_to = data["date_to"]
-        date_from = data["date_from"]
-        hide_account_at_0 = data["hide_account_at_0"]
-        show_hierarchy = data["show_hierarchy"]
-        show_hierarchy_level = data["show_hierarchy_level"]
-        foreign_currency = data["foreign_currency"]
-        only_posted_moves = data["only_posted_moves"]
-        unaffected_earnings_account = data["unaffected_earnings_account"]
-        fy_start_date = data["fy_start_date"]
-        total_amount, accounts_data, partners_data = self._get_data(
-            account_ids,
-            journal_ids,
-            partner_ids,
-            company_id,
-            date_to,
-            date_from,
-            foreign_currency,
-            only_posted_moves,
-            show_partner_details,
-            hide_account_at_0,
-            unaffected_earnings_account,
-            fy_start_date,
-        )
+    # def _create_trial_balance(self, total_amount, accounts_data, show_partner_details, foreign_currency, show_hierarchy):
+    #     trial_balance = []
+    #     if not show_partner_details:
+    #         for account_id in accounts_data.keys():
+    #             accounts_data[account_id].update(
+    #                 {
+    #                     "initial_balance": total_amount[account_id]["initial_balance"],
+    #                     "credit": total_amount[account_id]["credit"],
+    #                     "debit": total_amount[account_id]["debit"],
+    #                     "balance": total_amount[account_id]["balance"],
+    #                     "ending_balance": total_amount[account_id]["ending_balance"],
+    #                     "type": "account_type",
+    #                 }
+    #             )
+    #             if foreign_currency:
+    #                 accounts_data[account_id].update(
+    #                     {
+    #                         "ending_currency_balance": total_amount[account_id][
+    #                             "ending_currency_balance"
+    #                         ],
+    #                         "initial_currency_balance": total_amount[account_id][
+    #                             "initial_currency_balance"
+    #                         ],
+    #                     }
+    #                 )
+    #         if show_hierarchy:
+    #             groups_data = self._get_groups_data(
+    #                 accounts_data, total_amount, foreign_currency
+    #             )
+    #             trial_balance = list(groups_data.values())
+    #             trial_balance += list(accounts_data.values())
+    #             trial_balance = sorted(trial_balance, key=lambda k: k["complete_code"])
+    #             for trial in trial_balance:
+    #                 counter = trial["complete_code"].count("/")
+    #                 trial["level"] = counter
+    #         else:
+    #             trial_balance = list(accounts_data.values())
+    #             trial_balance = sorted(trial_balance, key=lambda k: k["code"])
+    #     else:
+    #         if foreign_currency:
+    #             for a_id in accounts_data.keys():
+    #                 total_amount[account_id]["currency_id"] = accounts_data[account_id][
+    #                     "currency_id"
+    #                 ]
+    #                 total_amount[account_id]["currency_name"] = accounts_data[
+    #                     account_id
+    #                 ]["currency_name"]
+    #     return trial_balance
+
+    def _create_trial_balance(self, total_amount, accounts_data, show_partner_details, foreign_currency, show_hierarchy, grouped_by):
         trial_balance = []
         if not show_partner_details:
             for account_id in accounts_data.keys():
@@ -688,6 +730,83 @@ class TrialBalanceReport(models.AbstractModel):
                             ],
                         }
                     )
+            # grouped
+            if grouped_by:
+                grouped_data = {}
+                for account_id in total_amount.keys():
+                    account_data = total_amount[account_id]
+                    move_line = account_data["move_lines"][0] if "move_lines" in account_data else False
+                    if move_line and move_line["analytic_account_id"]:
+                        aa_id = move_line["analytic_account_id"]
+                        if aa_id not in grouped_data:
+                            grouped_data[aa_id] = {
+                                "id": aa_id,
+                                "name": move_line["analytic_account_name"],
+                                "code": move_line["analytic_account_code"] or move_line["analytic_account_name"],
+                                "data": {},
+                            }
+                print({
+                    'grouped_data': grouped_data,
+                })
+                trial_balance = sorted(list(grouped_data.values()), key=lambda k: k["code"])
+                for trial_balance_item in trial_balance:
+                    print({
+                        'trial_balance_item': trial_balance_item,
+                    })
+                    aa_id = trial_balance_item["id"]
+                    for account_id in total_amount.keys():
+                        total_amount_data = total_amount[account_id]
+                        move_lines = total_amount_data["move_lines"] if "move_lines" in total_amount_data else False
+                        if move_lines:
+                            move_lines_filtered = list(
+                                filter(
+                                    lambda ml: ml["analytic_account_id"] == aa_id,
+                                    move_lines,
+                                )
+                            )
+                            grouped_data["data"][account_id] = {
+                                "initial_balance": 0,
+                                "credit": 0,
+                                "debit": 0,
+                                "balance": 0,
+                                "ending_balance": 0,
+                            }
+                for account_id in accounts_data.keys():
+                    account_data = accounts_data[account_id]
+                    move_line = (
+                        account_data["move_lines"][0]
+                        if account_data["move_lines"] else False
+                    )
+                    grouped_id = (
+                        move_line["analytic_account_id"]
+                        if move_line and move_line["analytic_account_id"] else 0
+                    )
+                    grouped_name = (
+                        move_line["analytic_account_name"]
+                        if move_line and move_line["analytic_account_name"] else ""
+                    )
+                    grouped_key = (
+                        move_line["analytic_account_code"]
+                        if move_line and move_line["analytic_account_code"] else ""
+                    )
+
+                    trial_balance_item = {
+                        "key": grouped_key,
+                        "name": grouped_name,
+                        "grouped_by": grouped_by,
+                        "items": xxx,
+                        "initial_balance": total_amount[account_id]["initial_balance"],
+                        "credit": total_amount[account_id]["credit"],
+                        "debit": total_amount[account_id]["debit"],
+                        "balance": total_amount[account_id]["balance"],
+                        "ending_balance": total_amount[account_id]["ending_balance"],
+                        "ending_currency_balance": 0,
+                        "initial_currency_balance": 0,
+                    }
+                    print('agrupamos')
+                    print(asas)
+
+
             if show_hierarchy:
                 groups_data = self._get_groups_data(
                     accounts_data, total_amount, foreign_currency
@@ -703,17 +822,64 @@ class TrialBalanceReport(models.AbstractModel):
                 trial_balance = sorted(trial_balance, key=lambda k: k["code"])
         else:
             if foreign_currency:
-                for account_id in accounts_data.keys():
+                for a_id in accounts_data.keys():
                     total_amount[account_id]["currency_id"] = accounts_data[account_id][
                         "currency_id"
                     ]
                     total_amount[account_id]["currency_name"] = accounts_data[
                         account_id
                     ]["currency_name"]
+        return trial_balance
+
+    def _get_report_values(self, docids, data):
+        show_partner_details = data["show_partner_details"]
+        wizard_id = data["wizard_id"]
+        company = self.env["res.company"].browse(data["company_id"])
+        company_id = data["company_id"]
+        partner_ids = data["partner_ids"]
+        journal_ids = data["journal_ids"]
+        account_ids = data["account_ids"]
+        date_to = data["date_to"]
+        date_from = data["date_from"]
+        hide_account_at_0 = data["hide_account_at_0"]
+        show_hierarchy = data["show_hierarchy"]
+        show_hierarchy_level = data["show_hierarchy_level"]
+        foreign_currency = data["foreign_currency"]
+        only_posted_moves = data["only_posted_moves"]
+        unaffected_earnings_account = data["unaffected_earnings_account"]
+        fy_start_date = data["fy_start_date"]
+        wizard = self.env["trial.balance.report.wizard"].browse(wizard_id)
+        grouped_by = wizard.grouped_by
+        total_amount, accounts_data, partners_data = self._get_data(
+            account_ids,
+            journal_ids,
+            partner_ids,
+            company_id,
+            date_to,
+            date_from,
+            foreign_currency,
+            only_posted_moves,
+            show_partner_details,
+            hide_account_at_0,
+            unaffected_earnings_account,
+            fy_start_date,
+        )
+        trial_balance = self._create_trial_balance(
+            total_amount,
+            accounts_data,
+            show_partner_details,
+            foreign_currency,
+            show_hierarchy,
+            grouped_by
+        )
+        print({
+            'trial_balance': trial_balance,
+        })
+        print(asass)
         return {
-            "doc_ids": [wizard_id],
-            "doc_model": "trial.balance.report.wizard",
-            "docs": self.env["trial.balance.report.wizard"].browse(wizard_id),
+            "doc_ids": wizard.id,
+            "doc_model": wizard._name,
+            "docs": wizard,
             "foreign_currency": data["foreign_currency"],
             "company_name": company.display_name,
             "company_currency": company.currency_id,

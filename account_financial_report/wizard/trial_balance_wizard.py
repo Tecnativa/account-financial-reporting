@@ -67,6 +67,10 @@ class TrialBalanceReportWizard(models.TransientModel):
         comodel_name="account.account",
         help="Ending account in a range",
     )
+    grouped_by = fields.Selection(
+        selection=[("", "None"), ("analytic_account", "Analytic Account")],
+        default="",
+    )
 
     @api.onchange("account_code_from", "account_code_to")
     def on_change_account_range(self):
