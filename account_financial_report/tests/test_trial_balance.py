@@ -1,6 +1,7 @@
 # Author: Julien Coux
 # Copyright 2016 Camptocamp SA
 # Copyright 2020 ForgeFlow S.L. (https://www.forgeflow.com)
+# Copyright 2024 Tecnativa - Víctor Martínez
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 from odoo.tests import tagged
@@ -203,66 +204,88 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         res_data = self.env[
             "report.account_financial_report.trial_balance"
         ]._get_report_values(trial_balance, data)
-        return res_data
+        return trial_balance, res_data
 
     def check_account_in_report(self, account_id, trial_balance):
-        account_in_report = False
-        for account in trial_balance:
-            if account["id"] == account_id and account["type"] == "account_type":
-                account_in_report = True
-                break
-        return account_in_report
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                account = trial_balance_item["data"][a_id]
+                if account["id"] == account_id and account["type"] == "account_type":
+                    return True
+        return False
+
+    def _get_info_line(self, item):
+        return {
+            "initial_balance": item["initial_balance"],
+            "debit": item["debit"],
+            "credit": item["credit"],
+            "final_balance": item["ending_balance"],
+        }
 
     def _get_account_lines(self, account_id, trial_balance):
-        lines = False
-        for account in trial_balance:
-            if account["id"] == account_id and account["type"] == "account_type":
-                lines = {
-                    "initial_balance": account["initial_balance"],
-                    "debit": account["debit"],
-                    "credit": account["credit"],
-                    "final_balance": account["ending_balance"],
-                }
-        return lines
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                account = trial_balance_item["data"][a_id]
+                if account["id"] == account_id and account["type"] == "account_type":
+                    return self._get_info_line(account)
+        return False
 
     def _get_group_lines(self, group_id, trial_balance):
-        lines = False
-        for group in trial_balance:
-            if group["id"] == group_id and group["type"] == "group_type":
-                lines = {
-                    "initial_balance": group["initial_balance"],
-                    "debit": group["debit"],
-                    "credit": group["credit"],
-                    "final_balance": group["ending_balance"],
-                }
-        return lines
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                data_item = trial_balance_item["data"][a_id]
+                if data_item["id"] == group_id and data_item["type"] == "group_type":
+                    return self._get_info_line(data_item)
+        return False
 
-    def check_partner_in_report(self, account_id, partner_id, total_amount):
-        partner_in_report = False
-        if account_id in total_amount.keys():
-            if partner_id in total_amount[account_id]:
-                partner_in_report = True
-        return partner_in_report
+    def check_partner_in_report(self, account_id, partner_id, trial_balance):
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                data_item = trial_balance_item["data"][a_id]
+                if (
+                    account_id == data_item["id"]
+                    and partner_id in data_item["partner_ids"]
+                ):
+                    return True
+        return False
 
-    def _get_partner_lines(self, account_id, partner_id, total_amount):
-        acc_id = account_id
-        prt_id = partner_id
-        lines = {
-            "initial_balance": total_amount[acc_id][prt_id]["initial_balance"],
-            "debit": total_amount[acc_id][prt_id]["debit"],
-            "credit": total_amount[acc_id][prt_id]["credit"],
-            "final_balance": total_amount[acc_id][prt_id]["ending_balance"],
-        }
-        return lines
+    def _get_partner_lines(self, account_id, partner_id, trial_balance):
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                data_item = trial_balance_item["data"][a_id]
+                if (
+                    data_item["type"] == "account_type"
+                    and account_id == data_item["id"]
+                ):
+                    for partner in data_item["partners"]:
+                        if partner["id"] == partner_id:
+                            return {
+                                "initial_balance": partner["initial_balance"],
+                                "debit": partner["debit"],
+                                "credit": partner["credit"],
+                                "final_balance": partner["ending_balance"],
+                            }
+        return False
 
     def _sum_all_accounts(self, trial_balance, feature):
         total = 0.0
-        for account in trial_balance:
-            if account["type"] == "account_type":
-                for key in account.keys():
-                    if key == feature:
-                        total += account[key]
+        for trial_balance_item in trial_balance:
+            for a_id in list(trial_balance_item["data"].keys()):
+                data_item = trial_balance_item["data"][a_id]
+                if data_item["type"] == "account_type":
+                    for key in data_item.keys():
+                        if key == feature:
+                            total += data_item[key]
         return total
+
+    def _test_reports_trial_balance(self, tb_wizard):
+        data = tb_wizard._prepare_report_trial_balance()
+        # Generate an PDF report to confirm that it works without errors.
+        report_name = "account_financial_report.action_report_trial_balance_qweb"
+        self.env.ref(report_name)._render(tb_wizard.ids, data)
+        # Generate an XLSX report to confirm that it works without errors.
+        report_name = "account_financial_report.action_report_trial_balance_xlsx"
+        self.env.ref(report_name)._render(tb_wizard.ids, data)
 
     def test_00_account_group(self):
         self.assertTrue(self.account100 in self.group1.compute_account_ids)
@@ -270,7 +293,7 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
 
     def test_02_account_balance_hierarchy(self):
         # Generate the general ledger line
-        res_data = self._get_report_lines(show_hierarchy=True)
+        _, res_data = self._get_report_lines(show_hierarchy=True)
         trial_balance = res_data["trial_balance"]
         check_receivable_account = self.check_account_in_report(
             self.account100.id, trial_balance
@@ -292,7 +315,7 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(show_hierarchy=True)
+        _, res_data = self._get_report_lines(show_hierarchy=True)
         trial_balance = res_data["trial_balance"]
         check_receivable_account = self.check_account_in_report(
             self.account100.id, trial_balance
@@ -331,7 +354,7 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(show_hierarchy=True)
+        _, res_data = self._get_report_lines(show_hierarchy=True)
         trial_balance = res_data["trial_balance"]
         check_receivable_account = self.check_account_in_report(
             self.account100.id, trial_balance
@@ -383,7 +406,8 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(show_hierarchy=True)
+        tb_wizard, res_data = self._get_report_lines(show_hierarchy=True)
+        self._test_reports_trial_balance(tb_wizard)
         trial_balance = res_data["trial_balance"]
         check_receivable_account = self.check_account_in_report(
             self.account100.id, trial_balance
@@ -426,10 +450,10 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
 
     def test_03_partner_balance(self):
         # Generate the trial balance line
-        res_data = self._get_report_lines(with_partners=True)
-        total_amount = res_data["total_amount"]
+        _, res_data = self._get_report_lines(with_partners=True)
+        trial_balance = res_data["trial_balance"]
         check_partner_receivable = self.check_partner_in_report(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
         self.assertFalse(check_partner_receivable)
 
@@ -444,16 +468,16 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(with_partners=True)
-        total_amount = res_data["total_amount"]
+        _, res_data = self._get_report_lines(with_partners=True)
+        trial_balance = res_data["trial_balance"]
         check_partner_receivable = self.check_partner_in_report(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
         self.assertTrue(check_partner_receivable)
 
         # Check the initial and final balance
         partner_lines = self._get_partner_lines(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
 
         self.assertEqual(partner_lines["initial_balance"], 1000)
@@ -473,16 +497,16 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(with_partners=True)
-        total_amount = res_data["total_amount"]
+        _, res_data = self._get_report_lines(with_partners=True)
+        trial_balance = res_data["trial_balance"]
         check_partner_receivable = self.check_partner_in_report(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
         self.assertTrue(check_partner_receivable)
 
         # Check the initial and final balance
         partner_lines = self._get_partner_lines(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
 
         self.assertEqual(partner_lines["initial_balance"], 1000)
@@ -501,16 +525,17 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         )
 
         # Re Generate the trial balance line
-        res_data = self._get_report_lines(with_partners=True)
-        total_amount = res_data["total_amount"]
+        tb_wizard, res_data = self._get_report_lines(with_partners=True)
+        self._test_reports_trial_balance(tb_wizard)
+        trial_balance = res_data["trial_balance"]
         check_partner_receivable = self.check_partner_in_report(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
         self.assertTrue(check_partner_receivable)
 
         # Check the initial and final balance
         partner_lines = self._get_partner_lines(
-            self.account100.id, self.partner.id, total_amount
+            self.account100.id, self.partner.id, trial_balance
         )
 
         self.assertEqual(partner_lines["initial_balance"], 1000)
@@ -661,6 +686,7 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
                 "fy_start_date": self.fy_date_start,
             }
         )
+        self._test_reports_trial_balance(trial_balance)
         data = trial_balance._prepare_report_trial_balance()
         res_data = self.env[
             "report.account_financial_report.trial_balance"
@@ -721,3 +747,4 @@ class TestTrialBalanceReport(AccountTestInvoicingCommon):
         ]
         self.assertEqual(len(trial_balance_code_set), len(all_accounts_code_set))
         self.assertTrue(trial_balance_code_set == all_accounts_code_set)
+        self._test_reports_trial_balance(trial_balance)

@@ -1,6 +1,7 @@
 # Author: Julien Coux
 # Copyright 2016 Camptocamp SA
 # Copyright 2021 Tecnativa - João Marques
+# Copyright 2024 Tecnativa - Víctor Martínez
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 
@@ -166,7 +167,6 @@ class TrialBalanceXslx(models.AbstractModel):
             "report.account_financial_report.trial_balance"
         ]._get_report_values(report, data)
         trial_balance = res_data["trial_balance"]
-        total_amount = res_data["total_amount"]
         partners_data = res_data["partners_data"]
         accounts_data = res_data["accounts_data"]
         show_hierarchy = res_data["show_hierarchy"]
@@ -181,69 +181,74 @@ class TrialBalanceXslx(models.AbstractModel):
 
         # For each account
         if not show_partner_details:
-            for balance in trial_balance:
-                if show_hierarchy and limit_hierarchy_level:
-                    if show_hierarchy_level > balance["level"] and (
-                        not hide_parent_hierarchy_level
-                        or (show_hierarchy_level - 1) == balance["level"]
-                    ):
-                        # Display account lines
+            for trial_balance_item in trial_balance:
+                for data_key in trial_balance_item["data"]:
+                    balance = trial_balance_item["data"][data_key]
+                    if show_hierarchy and limit_hierarchy_level:
+                        if show_hierarchy_level > balance["level"] and (
+                            not hide_parent_hierarchy_level
+                            or (show_hierarchy_level - 1) == balance["level"]
+                        ):
+                            # Display account lines
+                            self.write_line_from_dict(balance, report_data)
+                    else:
                         self.write_line_from_dict(balance, report_data)
-                else:
-                    self.write_line_from_dict(balance, report_data)
         else:
-            for account_id in total_amount:
-                # Write account title
-                self.write_array_title(
-                    accounts_data[account_id]["code"]
-                    + "- "
-                    + accounts_data[account_id]["name"],
-                    report_data,
-                )
-                # Display array header for partner lines
-                self.write_array_header(report_data)
+            for trial_balance_item in trial_balance:
+                for data_key in trial_balance_item["data"]:
+                    balance = trial_balance_item["data"][data_key]
+                    account_id = balance["id"]
+                    # Write account title
+                    self.write_array_title(
+                        accounts_data[account_id]["code"]
+                        + "- "
+                        + accounts_data[account_id]["name"],
+                        report_data,
+                    )
+                    # Display array header for partner lines
+                    self.write_array_header(report_data)
 
-                # For each partner
-                for partner_id in total_amount[account_id]:
-                    if isinstance(partner_id, int):
+                    # For each partner
+                    for partner in balance["partners"]:
+                        partner_id = partner["id"]
                         # Display partner lines
                         self.write_line_from_dict_order(
-                            total_amount[account_id][partner_id],
+                            partner,
                             partners_data[partner_id],
                             report_data,
                         )
 
-                # Display account footer line
-                accounts_data[account_id].update(
-                    {
-                        "initial_balance": total_amount[account_id]["initial_balance"],
-                        "credit": total_amount[account_id]["credit"],
-                        "debit": total_amount[account_id]["debit"],
-                        "balance": total_amount[account_id]["balance"],
-                        "ending_balance": total_amount[account_id]["ending_balance"],
-                    }
-                )
-                if foreign_currency:
+                    # Display account footer line
                     accounts_data[account_id].update(
                         {
-                            "initial_currency_balance": total_amount[account_id][
-                                "initial_currency_balance"
-                            ],
-                            "ending_currency_balance": total_amount[account_id][
-                                "ending_currency_balance"
-                            ],
+                            "initial_balance": balance["initial_balance"],
+                            "credit": balance["credit"],
+                            "debit": balance["debit"],
+                            "balance": balance["balance"],
+                            "ending_balance": balance["ending_balance"],
                         }
                     )
-                self.write_account_footer(
-                    accounts_data[account_id],
-                    accounts_data[account_id]["code"]
-                    + "- "
-                    + accounts_data[account_id]["name"],
-                    report_data,
-                )
+                    if foreign_currency:
+                        accounts_data[account_id].update(
+                            {
+                                "initial_currency_balance": balance[
+                                    "initial_currency_balance"
+                                ],
+                                "ending_currency_balance": balance[
+                                    "ending_currency_balance"
+                                ],
+                            }
+                        )
+                    self.write_account_footer(
+                        accounts_data[account_id],
+                        accounts_data[account_id]["code"]
+                        + "- "
+                        + accounts_data[account_id]["name"],
+                        report_data,
+                    )
 
-                # Line break
-                report_data["row_pos"] += 2
+                    # Line break
+                    report_data["row_pos"] += 2
 
     def write_line_from_dict_order(self, total_amount, partner_data, report_data):
         total_amount.update({"name": str(partner_data["name"])})
