@@ -5,7 +5,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
 
-from odoo import api, models
+from odoo import _, api, models
 from odoo.tools.float_utils import float_is_zero
 
 
@@ -31,6 +31,13 @@ class TrialBalanceReport(models.AbstractModel):
         res["type"] = False
         res["name"] = ""
         res["code"] = ""
+        res["data"] = {}
+        return res
+
+    def _initialize_analytic_account_data(self, analytic_account_id):
+        res = self._initialize_common_data()
+        res["id"] = analytic_account_id
+        res["type"] = "analytic_type"
         res["data"] = {}
         return res
 
@@ -163,6 +170,26 @@ class TrialBalanceReport(models.AbstractModel):
             domain += [("account_id.internal_type", "in", ["receivable", "payable"])]
         return domain
 
+    def _prepare_tb_initial_data_grouped_analytic_account(
+        self, tb_initial_data, show_partner_details
+    ):
+        res = {}
+        for tb in tb_initial_data:
+            aa_id = tb["analytic_account_id"][0] if tb["analytic_account_id"] else 0
+            res[aa_id] = self._initialize_analytic_account_data(aa_id)
+            res[aa_id]["initial_balance"] = tb["balance"]
+            res[aa_id]["initial_currency_balance"] = tb["amount_currency"]
+            tb_initial_account = self.env["account.move.line"].read_group(
+                domain=tb["__domain"],
+                fields=["account_id", "balance", "amount_currency"],
+                groupby=["account_id"],
+            )
+            # Call _prepare_tb_initial_data_misc() method to full compatibility
+            res[aa_id]["data"] = self._prepare_tb_initial_data_misc(
+                tb_initial_account, show_partner_details
+            )
+        return res
+
     def _prepare_tb_initial_data(self, tb_initial_data, show_partner_details):
         """Basic method no grouping, the idea is to have all the information
         structured.
@@ -220,12 +247,16 @@ class TrialBalanceReport(models.AbstractModel):
             )
             partners_data = {}
             for p in tb_initial_partner:
-                p_id = p["partner_id"][0]
+                p_id = p["partner_id"][0] if p["partner_id"] else 0
                 partners_data[p_id] = self._initialize_partner_data(p_id)
                 partners_data[p_id]["initial_balance"] = p["balance"]
                 partners_data[p_id]["initial_currency_balance"] = p["amount_currency"]
             data[acc_id]["partners"] = partners_data
         return data
+
+    def _get_field_name_grouped_by(self, grouped_by):
+        mapped = {"analytic_account": "analytic_account_id"}
+        return mapped[grouped_by]
 
     def _get_initial_balance_fy_pl_ml_domain(
         self,
@@ -301,6 +332,10 @@ class TrialBalanceReport(models.AbstractModel):
         )
         tb_initial_fields = ["account_id", "balance", "amount_currency"]
         tb_initial_groupby = ["account_id"]
+        if grouped_by:
+            f_name_grouped_by = self._get_field_name_grouped_by(grouped_by)
+            tb_initial_fields.append(f_name_grouped_by)
+            tb_initial_groupby.insert(0, f_name_grouped_by)
         if show_partner_details:
             tb_initial_fields.append("partner_id")
             tb_initial_groupby.append("partner_id")
@@ -316,6 +351,8 @@ class TrialBalanceReport(models.AbstractModel):
         )
         tb_initial_data = tb_initial_data_bs + tb_initial_data_pl
         method_name = "_prepare_tb_initial_data"
+        if grouped_by:
+            method_name = "_prepare_tb_initial_data_grouped_%s" % grouped_by
         data = getattr(self, method_name)(tb_initial_data, show_partner_details)
         # unaffected_earnings_account process extra
         unaffected_id = unaffected_earnings_account
@@ -373,11 +410,34 @@ class TrialBalanceReport(models.AbstractModel):
 
     def _get_partners_data(self, partner_ids):
         res = {}
-        partners = self.env["res.partner"].search_read(
-            domain=[("id", "in", partner_ids)], fields=["id", "name"]
+        partners = (
+            self.env["res.partner"]
+            .with_context(active_test=False)
+            .search_read(domain=[("id", "in", partner_ids)], fields=["id", "name"])
         )
         for partner_data in partners:
             res[partner_data["id"]] = partner_data
+        return res
+
+    def _get_analytic_account_data(self, analytic_account_ids):
+        res = {}
+        accounts = (
+            self.env["account.analytic.account"]
+            .with_context(active_test=False)
+            .search_read(
+                domain=[("id", "in", analytic_account_ids)],
+                fields=["id", "name", "code", "display_name", "currency_id"],
+            )
+        )
+        for aa_data in accounts:
+            aa_id = aa_data["id"]
+            res[aa_id] = aa_data
+            res[aa_id]["name"] = aa_data["display_name"]
+            # Set display_name as code so that the sorting is correct (after)
+            res[aa_id]["code"] = aa_data["display_name"]
+            res[aa_id]["currency_id"] = (
+                aa_data["currency_id"][0] if aa_data["currency_id"] else 0
+            )
         return res
 
     def _get_account_groups_data(self, account_group_ids):
@@ -467,6 +527,34 @@ class TrialBalanceReport(models.AbstractModel):
         res_data = list(res.values())
         return sorted(res_data, key=lambda k: k["level"])
 
+    def _prepare_period_ml_data_grouped_analytic_account(
+        self, tb_data, total_amounts, show_partner_details
+    ):
+        groupby_f = ["account_id"]
+        if show_partner_details:
+            groupby_f.append("partner_id")
+        for ml_data in total_amounts:
+            aa_id = (
+                ml_data["analytic_account_id"][0]
+                if ml_data["analytic_account_id"]
+                else 0
+            )
+            if aa_id not in tb_data:
+                tb_data[aa_id] = self._initialize_analytic_account_data(aa_id)
+            tb_data[aa_id]["balance"] = ml_data["balance"]
+            tb_data[aa_id]["debit"] = ml_data["debit"]
+            tb_data[aa_id]["credit"] = ml_data["credit"]
+            total_amounts_items = self.env["account.move.line"].read_group(
+                domain=ml_data["__domain"],
+                fields=self._get_ml_fields(),
+                groupby=groupby_f,
+            )
+            # Call _prepare_period_ml_misc() method to full compatibility
+            tb_data[aa_id]["data"] = self._prepare_period_ml_misc(
+                tb_data[aa_id]["data"], total_amounts_items, show_partner_details
+            )
+        return tb_data
+
     def _prepare_period_ml_data(self, tb_data, total_amounts, show_partner_details):
         tb_data[0]["data"] = self._prepare_period_ml_misc(
             tb_data[0]["data"], total_amounts, show_partner_details
@@ -493,7 +581,7 @@ class TrialBalanceReport(models.AbstractModel):
                 groupby="partner_id",
             )
             for p_data in total_amounts_partners:
-                p_id = p_data["partner_id"][0]
+                p_id = p_data["partner_id"][0] if p_data["partner_id"] else 0
                 if p_id not in res[acc_id]["partners"]:
                     res[acc_id]["partners"][p_id] = self._initialize_partner_data(p_id)
                 res[acc_id]["partners"][p_id]["balance"] = p_data["balance"]
@@ -530,12 +618,18 @@ class TrialBalanceReport(models.AbstractModel):
         )
         ml_fields = self._get_ml_fields()
         groupby_f = ["account_id"]
+        if grouped_by:
+            f_name_grouped_by = self._get_field_name_grouped_by(grouped_by)
+            ml_fields.append(f_name_grouped_by)
+            groupby_f.insert(0, f_name_grouped_by)
         if show_partner_details:
             groupby_f.append("partner_id")
         total_amounts = self.env["account.move.line"].read_group(
             domain=period_domain, fields=ml_fields, groupby=groupby_f
         )
         method_name = "_prepare_period_ml_data"
+        if grouped_by:
+            method_name = "_prepare_period_ml_data_grouped_%s" % grouped_by
         tb_data = getattr(self, method_name)(
             tb_data, total_amounts, show_partner_details
         )
@@ -572,7 +666,8 @@ class TrialBalanceReport(models.AbstractModel):
             and float_is_zero(item["ending_balance"], precision_rounding=rounding)
         )
 
-    def _remove_accounts_0(self, tb_data, company_id):
+    # flake8: noqa: C901
+    def _remove_accounts_0(self, tb_data, company_id, show_partner_details):
         """Remove the accounts at 0 (if applicable) from each data key."""
         company = self.env["res.company"].browse(company_id)
         rounding = company.currency_id.rounding
@@ -580,11 +675,22 @@ class TrialBalanceReport(models.AbstractModel):
         for key in list(tb_data.keys()):
             for a_id in list(tb_data[key]["data"].keys()):
                 tb_data_item = tb_data[key]["data"][a_id]
-            if self.is_removable(tb_data_item, rounding):
-                if key not in accounts_to_remove:
-                    accounts_to_remove[key] = []
-                if a_id not in accounts_to_remove[key]:
-                    accounts_to_remove[key].append(a_id)
+                # partners
+                if show_partner_details and "partners" in tb_data_item:
+                    partners_to_remove = []
+                    for p_id in list(tb_data_item["partners"].keys()):
+                        tb_data_item_partner = tb_data_item["partners"][p_id]
+                        if self.is_removable(tb_data_item_partner, rounding):
+                            partners_to_remove.append(p_id)
+                    for p_id in partners_to_remove:
+                        if p_id in tb_data_item["partners"]:
+                            del tb_data_item["partners"][p_id]
+                # global
+                if self.is_removable(tb_data_item, rounding):
+                    if key not in accounts_to_remove:
+                        accounts_to_remove[key] = []
+                    if a_id not in accounts_to_remove[key]:
+                        accounts_to_remove[key].append(a_id)
         keys_to_remove = []
         for key in list(accounts_to_remove.keys()):
             for a_id in accounts_to_remove[key]:
@@ -597,6 +703,22 @@ class TrialBalanceReport(models.AbstractModel):
             if key in tb_data:
                 del tb_data[key]
         return tb_data
+
+    def _pre_process_create_trial_balance_grouped_analytic_account(self, tb_data):
+        analytic_account_ids = list(tb_data.keys())
+        analytic_account_data = self._get_analytic_account_data(analytic_account_ids)
+        for aa_id in list(tb_data.keys()):
+            aa_name = _("No analytical account")
+            aa_code = ""
+            aa_currency = False
+            if aa_id in analytic_account_data:
+                aa_item = analytic_account_data[aa_id]
+                aa_name = aa_item["name"]
+                aa_code = aa_item["code"]
+                aa_currency = aa_item["currency_id"]
+            tb_data[aa_id]["name"] = aa_name
+            tb_data[aa_id]["code"] = aa_code
+            tb_data[aa_id]["currency_id"] = aa_currency
 
     def _create_trial_balance(
         self,
@@ -618,7 +740,10 @@ class TrialBalanceReport(models.AbstractModel):
         At the end, we sort the records by code so that they will be displayed
         correctly."""
         if hide_account_at_0:
-            tb_data = self._remove_accounts_0(tb_data, company_id)
+            tb_data = self._remove_accounts_0(tb_data, company_id, show_partner_details)
+        if grouped_by:
+            method_name = "_pre_process_create_trial_balance_grouped_%s" % grouped_by
+            getattr(self, method_name)(tb_data)
         # Fill account information + hierarchy data + ending balance
         for key in list(tb_data.keys()):
             for a_id in list(tb_data[key]["data"].keys()):
@@ -640,9 +765,10 @@ class TrialBalanceReport(models.AbstractModel):
                 if not show_partner_details:
                     continue
                 for p_id in list(tb_data[key]["data"][a_id]["partners"].keys()):
-                    tb_data[key]["data"][a_id]["partners"][p_id][
-                        "name"
-                    ] = partners_data[p_id]["name"]
+                    partner_name = _("No partner")
+                    if p_id in partners_data:
+                        partner_name = partners_data[p_id]["name"]
+                    tb_data[key]["data"][a_id]["partners"][p_id]["name"] = partner_name
                     # Ending balance partner
                     p_item = tb_data[key]["data"][a_id]["partners"][p_id]
                     tb_data[key]["data"][a_id]["partners"][p_id]["ending_balance"] = (
@@ -717,7 +843,8 @@ class TrialBalanceReport(models.AbstractModel):
         only_posted_moves = data["only_posted_moves"]
         unaffected_earnings_account = data["unaffected_earnings_account"]
         fy_start_date = data["fy_start_date"]
-        grouped_by = False
+        wizard = self.env["trial.balance.report.wizard"].browse(wizard_id)
+        grouped_by = wizard.grouped_by
         tb_data = self._get_initial_balance_data(
             account_ids,
             journal_ids,
@@ -761,6 +888,11 @@ class TrialBalanceReport(models.AbstractModel):
             unaffected_earnings_account,
             grouped_by,
         )
+        total_trial_balance = self._initialize_common_data()
+        gv_keys = list(self._initialize_common_data().keys())
+        for key in list(tb_data.keys()):
+            for gv_key in gv_keys:
+                total_trial_balance[gv_key] += tb_data[key][gv_key]
         return {
             "doc_ids": [wizard_id],
             "doc_model": "trial.balance.report.wizard",
@@ -778,7 +910,9 @@ class TrialBalanceReport(models.AbstractModel):
             "show_hierarchy": show_hierarchy,
             "hide_parent_hierarchy_level": data["hide_parent_hierarchy_level"],
             "trial_balance": trial_balance,
+            "total_trial_balance": total_trial_balance,
             "accounts_data": accounts_data,
             "partners_data": partners_data,
             "show_hierarchy_level": show_hierarchy_level,
+            "grouped_by": grouped_by,
         }

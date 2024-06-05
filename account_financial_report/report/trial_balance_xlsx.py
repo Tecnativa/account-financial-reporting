@@ -167,6 +167,7 @@ class TrialBalanceXslx(models.AbstractModel):
             "report.account_financial_report.trial_balance"
         ]._get_report_values(report, data)
         trial_balance = res_data["trial_balance"]
+        total_trial_balance = res_data["total_trial_balance"]
         partners_data = res_data["partners_data"]
         accounts_data = res_data["accounts_data"]
         show_hierarchy = res_data["show_hierarchy"]
@@ -175,13 +176,18 @@ class TrialBalanceXslx(models.AbstractModel):
         foreign_currency = res_data["foreign_currency"]
         limit_hierarchy_level = res_data["limit_hierarchy_level"]
         hide_parent_hierarchy_level = res_data["hide_parent_hierarchy_level"]
-        if not show_partner_details:
-            # Display array header for account lines
-            self.write_array_header(report_data)
+        grouped_by = res_data["grouped_by"]
 
         # For each account
         if not show_partner_details:
             for trial_balance_item in trial_balance:
+                # If there is a grouping show title before table header
+                if grouped_by:
+                    self.write_array_title(
+                        trial_balance_item["name"],
+                        report_data,
+                    )
+                self.write_array_header(report_data)
                 for data_key in trial_balance_item["data"]:
                     balance = trial_balance_item["data"][data_key]
                     if show_hierarchy and limit_hierarchy_level:
@@ -193,6 +199,25 @@ class TrialBalanceXslx(models.AbstractModel):
                             self.write_line_from_dict(balance, report_data)
                     else:
                         self.write_line_from_dict(balance, report_data)
+                # Footer with totals
+                if grouped_by:
+                    trial_balance_item["code"] = ""
+                    if trial_balance_item["currency_id"]:
+                        currency = self.env["res.currency"].browse(
+                            trial_balance_item["currency_id"]
+                        )
+                        trial_balance_item["currency_id"] = currency
+                        trial_balance_item["currency_name"] = currency.name
+                    self.write_account_footer(
+                        trial_balance_item, _("Total"), report_data
+                    )
+                # If there is a grouping we leave a row between tables
+                if grouped_by:
+                    report_data["row_pos"] += 1
+            if grouped_by:
+                total_trial_balance["currency_id"] = False
+                total_trial_balance["code"] = ""
+                self.write_account_footer(total_trial_balance, _("TOTAL"), report_data)
         else:
             for trial_balance_item in trial_balance:
                 for data_key in trial_balance_item["data"]:
@@ -211,10 +236,13 @@ class TrialBalanceXslx(models.AbstractModel):
                     # For each partner
                     for partner in balance["partners"]:
                         partner_id = partner["id"]
+                        partner_data = {"name": partner["name"]}
+                        if partner_id in partners_data:
+                            partner_data = partners_data[partner_id]
                         # Display partner lines
                         self.write_line_from_dict_order(
                             partner,
-                            partners_data[partner_id],
+                            partner_data,
                             report_data,
                         )
 

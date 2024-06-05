@@ -67,6 +67,14 @@ class TrialBalanceReportWizard(models.TransientModel):
         comodel_name="account.account",
         help="Ending account in a range",
     )
+    grouped_by = fields.Selection(
+        selection=[("analytic_account", "Analytic Account")], default=False
+    )
+
+    @api.onchange("grouped_by")
+    def onchange_grouped_by(self):
+        if self.grouped_by == "analytic_account":
+            self.show_partner_details = False
 
     @api.onchange("account_code_from", "account_code_to")
     def on_change_account_range(self):
@@ -201,6 +209,7 @@ class TrialBalanceReportWizard(models.TransientModel):
         """Handle partners change."""
         if self.show_partner_details:
             self.receivable_accounts_only = self.payable_accounts_only = True
+            self.grouped_by = False
         else:
             self.receivable_accounts_only = self.payable_accounts_only = False
 

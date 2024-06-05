@@ -37,13 +37,41 @@
             <!-- Display account lines -->
             <t t-set="aml_domain_extra" t-value="[]" />
             <t t-if="not show_partner_details">
-                <div class="act_as_table data_table" style="width: 100%;">
-                    <!-- Display account header -->
-                    <t
-                        t-call="account_financial_report.report_trial_balance_lines_header"
-                    />
-                    <!-- Display each lines -->
-                    <t t-foreach="trial_balance" t-as="trial_balance_item">
+                <!-- Display account header -->
+                <t t-foreach="trial_balance" t-as="trial_balance_item">
+                    <!-- Display the grouping as a new table header !-->
+                    <t t-if="grouped_by">
+                        <div class="act_as_table data_table" style="width: 100%;">
+                            <div class="act_as_thead">
+                                <div class="act_as_row labels">
+                                    <div class="act_as_cell" style="width: 100%;">
+                                        <!-- Only show the code if it is different from the name !-->
+                                        <t
+                                            t-esc="trial_balance_item['code']"
+                                            t-if="trial_balance_item['code'] != trial_balance_item['name']"
+                                        /> <t t-esc="trial_balance_item['name']" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <t t-if="trial_balance_item['type'] == 'analytic_type'">
+                            <t
+                                t-set="aml_domain_extra"
+                                t-if="trial_balance_item['id'] > 0"
+                                t-value="[('analytic_account_id', '=', trial_balance_item['id'])]"
+                            />
+                            <t
+                                t-set="aml_domain_extra"
+                                t-else=""
+                                t-value="[('analytic_account_id', '=', False)]"
+                            />
+                        </t>
+                    </t>
+                    <div class="act_as_table data_table" style="width: 100%;">
+                        <t
+                            t-call="account_financial_report.report_trial_balance_lines_header"
+                        />
+                        <!-- Display each lines -->
                         <t t-foreach="trial_balance_item['data']" t-as="data_key">
                             <t
                                 t-set="balance"
@@ -77,8 +105,22 @@
                                 />
                             </t>
                         </t>
+                    </div>
+                    <!-- Display footer with totals !-->
+                    <t t-if="grouped_by">
+                        <t t-set="balance" t-value="trial_balance_item" />
+                        <t
+                            t-call="account_financial_report.report_trial_balance_account_footer"
+                        />
                     </t>
-                </div>
+                </t>
+                <!-- TOTAL !-->
+                <t t-if="grouped_by">
+                    <t t-set="balance" t-value="total_trial_balance" />
+                    <t
+                        t-call="account_financial_report.report_trial_balance_account_footer"
+                    />
+                </t>
             </t>
             <!-- Display partner lines -->
             <t t-if="show_partner_details">
@@ -223,6 +265,26 @@
         <div class="act_as_row lines">
             <t t-if="not show_partner_details">
                 <!--## Code-->
+                <t t-if="balance['type'] == 'analytic_type'">
+                    <div class="act_as_cell left" t-att-style="style">
+                        <span
+                            t-att-res-id="balance['id']"
+                            res-model="account.analytic.account"
+                            view-type="form"
+                        >
+                            <t t-out="balance['code']" />
+                        </span>
+                    </div>
+                    <div class="act_as_cell left" t-att-style="style">
+                        <span
+                            t-att-res-id="balance['id']"
+                            res-model="account.analytic.account"
+                            view-type="form"
+                        >
+                            <t t-out="balance['name']" />
+                        </span>
+                    </div>
+                </t>
                 <t t-if="balance['type'] == 'account_type'">
                     <div class="act_as_cell left" t-att-style="style">
                         <span
@@ -686,9 +748,14 @@
             <div class="act_as_row labels" style="font-weight: bold;">
                 <!--## date-->
                 <div class="act_as_cell first_column" style="width: 33%;">
-                    <span t-out="balance['code']" />
-                    -
-                    <span t-out="balance['name']" />
+                    <t t-if="type == 'account_type'">
+                        <span t-out="balance['code']" />
+                        -
+                        <span t-out="balance['name']" />
+                    </t>
+                    <t t-else="">
+                        <span>Total</span>
+                    </t>
                 </div>
                 <!--## Initial Balance-->
                 <div class="act_as_cell amount" style="width: 9%;">
