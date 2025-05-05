@@ -59,6 +59,9 @@ class ReportStatementCommon(models.AbstractModel):
         return {}
 
     def _show_buckets_sql_q1(self, partners, date_end, account_type):
+        excluded_accounts_ids = tuple(
+            self.env.context.get("excluded_accounts_ids", [])
+        ) or (-1,)
         return str(
             self._cr.mogrify(
                 """
@@ -91,18 +94,18 @@ class ReportStatementCommon(models.AbstractModel):
                 WHERE l2.date <= %(date_end)s
             ) as pc ON pc.credit_move_id = l.id
             WHERE l.partner_id IN %(partners)s
-                                AND (
-                                  (pd.id IS NOT NULL AND
-                                      pd.max_date <= %(date_end)s) OR
-                                  (pc.id IS NOT NULL AND
-                                      pc.max_date <= %(date_end)s) OR
-                                  (pd.id IS NULL AND pc.id IS NULL)
-                                ) AND l.date <= %(date_end)s AND not l.blocked
-                                  AND m.state IN ('posted')
-                                AND aa.account_type = %(account_type)s
+                AND aa.id not in %(excluded_accounts_ids)s
+                AND (
+                  (pd.id IS NOT NULL AND
+                      pd.max_date <= %(date_end)s) OR
+                  (pc.id IS NOT NULL AND
+                      pc.max_date <= %(date_end)s) OR
+                  (pd.id IS NULL AND pc.id IS NULL)
+                ) AND l.date <= %(date_end)s AND not l.blocked
+                  AND m.state IN ('posted')
+                AND aa.account_type = %(account_type)s
             GROUP BY l.partner_id, l.currency_id, l.date, l.date_maturity,
-                                l.amount_currency, l.balance, l.move_id,
-                                l.company_id, l.id
+                l.amount_currency, l.balance, l.move_id, l.company_id, l.id
         """,
                 locals(),
             ),
@@ -358,6 +361,11 @@ class ReportStatementCommon(models.AbstractModel):
         if isinstance(date_end, str):
             date_end = datetime.strptime(date_end, DEFAULT_SERVER_DATE_FORMAT).date()
         account_type = data["account_type"]
+        excluded_accounts_ids = data["excluded_accounts_ids"]
+        if excluded_accounts_ids:
+            self = self.with_context(
+                excluded_accounts_ids=excluded_accounts_ids,
+            )
         aging_type = data["aging_type"]
         is_activity = data.get("is_activity")
         is_detailed = data.get("is_detailed")
@@ -583,6 +591,7 @@ class ReportStatementCommon(models.AbstractModel):
             "company": self.env["res.company"].browse(company_id),
             "Currencies": currencies,
             "account_type": account_type,
+            "excluded_accounts_ids": excluded_accounts_ids,
             "is_detailed": is_detailed,
             "bucket_labels": bucket_labels,
             "get_inv_addr": self._get_invoice_address,
