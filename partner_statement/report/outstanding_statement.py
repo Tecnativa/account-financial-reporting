@@ -29,6 +29,7 @@ class OutstandingStatement(models.AbstractModel):
         excluded_accounts_ids = tuple(
             self.env.context.get("excluded_accounts_ids", [])
         ) or (-1,)
+        show_only_overdue = self.env.context.get("show_only_overdue", False)
         return str(
             self._cr.mogrify(
                 """
@@ -83,6 +84,11 @@ class OutstandingStatement(models.AbstractModel):
                     (pd.id IS NULL AND pc.id IS NULL)
                 ) AND l.date <= %(date_end)s AND m.state IN ('posted')
                 AND aa.account_type = %(account_type)s
+                AND CASE
+                    WHEN %(show_only_overdue)s
+                    THEN COALESCE(l.date_maturity, l.date) <= %(date_end)s
+                    ELSE TRUE
+                END
             GROUP BY l.id, l.partner_id, m.name, l.date, l.date_maturity, l.name,
                 CASE WHEN l.ref IS NOT NULL
                     THEN l.ref
