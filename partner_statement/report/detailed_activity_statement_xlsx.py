@@ -702,28 +702,28 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 FORMATS[
                     "format_tcell_left_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
+                FORMATS["format_tcell_date_left_reconciled_outside-date-rank"] = (
+                    copy_format(workbook, FORMATS["format_tcell_date_left_reconciled"])
+                )
                 FORMATS[
                     "format_tcell_date_left_reconciled_outside-date-rank"
-                ] = copy_format(workbook, FORMATS["format_tcell_date_left_reconciled"])
-                FORMATS[
-                    "format_tcell_date_left_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
-                FORMATS[
-                    "format_distributed_reconciled_outside-date-rank"
-                ] = copy_format(workbook, FORMATS["format_distributed_reconciled"])
+                FORMATS["format_distributed_reconciled_outside-date-rank"] = (
+                    copy_format(workbook, FORMATS["format_distributed_reconciled"])
+                )
                 FORMATS[
                     "format_distributed_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
-                FORMATS[
-                    "current_money_format_reconciled_outside-date-rank"
-                ] = copy_format(workbook, FORMATS["current_money_format_reconciled"])
+                FORMATS["current_money_format_reconciled_outside-date-rank"] = (
+                    copy_format(workbook, FORMATS["current_money_format_reconciled"])
+                )
                 FORMATS[
                     "current_money_format_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
-                FORMATS[
-                    "format_tcell_left_blocked_reconciled_outside-date-rank"
-                ] = copy_format(
-                    workbook, FORMATS["format_tcell_left_blocked_reconciled"]
+                FORMATS["format_tcell_left_blocked_reconciled_outside-date-rank"] = (
+                    copy_format(
+                        workbook, FORMATS["format_tcell_left_blocked_reconciled"]
+                    )
                 )
                 FORMATS[
                     "format_tcell_left_blocked_reconciled_outside-date-rank"
@@ -736,18 +736,18 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 FORMATS[
                     "format_tcell_date_left_blocked_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
-                FORMATS[
-                    "format_distributed_blocked_reconciled_outside-date-rank"
-                ] = copy_format(
-                    workbook, FORMATS["format_distributed_blocked_reconciled"]
+                FORMATS["format_distributed_blocked_reconciled_outside-date-rank"] = (
+                    copy_format(
+                        workbook, FORMATS["format_distributed_blocked_reconciled"]
+                    )
                 )
                 FORMATS[
                     "format_distributed_blocked_reconciled_outside-date-rank"
                 ].set_font_color(fc_red)
-                FORMATS[
-                    "current_money_format_blocked_reconciled_outside-date-rank"
-                ] = copy_format(
-                    workbook, FORMATS["current_money_format_blocked_reconciled"]
+                FORMATS["current_money_format_blocked_reconciled_outside-date-rank"] = (
+                    copy_format(
+                        workbook, FORMATS["current_money_format_blocked_reconciled"]
+                    )
                 )
                 FORMATS[
                     "current_money_format_blocked_reconciled_outside-date-rank"
