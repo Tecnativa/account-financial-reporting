@@ -157,3 +157,37 @@ class TestActivityStatement(TransactionCase):
         wiz_id.onchange_aging_type()
         self.assertEqual((wiz_id.date_end - wiz_id.date_start).days, 31)
         self.assertTrue(wiz_id.date_end == self.today)
+
+    def test_get_title_detailed_receivable(self):
+        """Verify title for detailed receivable statement."""
+        title = self.statement_model._get_title(
+            self.partner1,
+            starting_date="2024-01-01",
+            ending_date="2024-01-31",
+            currency="USD",
+            is_detailed=True,
+            account_type="receivable",
+        )
+
+        self.assertEqual(
+            title,
+            "Detailed Statement between 2024-01-01 and 2024-01-31 in USD",
+            "Incorrect title for detailed receivable statement.",
+        )
+
+    def test_get_title_simple_supplier(self):
+        """Verify title for non-detailed supplier statement."""
+        title = self.statement_model._get_title(
+            self.partner2,
+            starting_date="2024-02-01",
+            ending_date="2024-02-28",
+            currency="EUR",
+            is_detailed=False,
+            account_type="payable",
+        )
+
+        self.assertEqual(
+            title,
+            "Supplier Statement between 2024-02-01 and 2024-02-28 in EUR",
+            "Incorrect title for non-detailed supplier statement.",
+        )
