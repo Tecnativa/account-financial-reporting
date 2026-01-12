@@ -30,8 +30,17 @@ class TestOutstandingStatement(TransactionCase):
         cls.company.external_report_layout_id = cls.env.ref(
             "web.external_layout_standard"
         )
-        cls.partner1 = cls.env.ref("base.res_partner_2")
-        cls.partner2 = cls.env.ref("base.res_partner_3")
+        cls.partner = cls.env["res.partner"]
+        cls.partner1 = cls.partner.create(
+            {
+                "name": "Deco Addict",
+            }
+        )
+        cls.partner2 = cls.partner.create(
+            {
+                "name": "Gemini Furniture",
+            }
+        )
         cls.user = new_test_user(
             cls.env, login="user_1", groups="account.group_account_user"
         )

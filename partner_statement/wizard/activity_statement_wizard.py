@@ -19,7 +19,7 @@ class ActivityStatementWizard(models.TransientModel):
             fields.Date.context_today(self).replace(day=1) - relativedelta(days=1)
         ).replace(day=1)
 
-    date_start = fields.Date(required=True, default=_get_date_start)
+    date_start = fields.Date(required=True, default=lambda self: self._get_date_start())
 
     @api.onchange("aging_type")
     def onchange_aging_type(self):

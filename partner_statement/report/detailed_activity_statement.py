@@ -1,7 +1,7 @@
 # Copyright 2022 ForgeFlow, S.L. (https://www.forgeflow.com)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import _, models
+from odoo import models
 
 from .outstanding_statement import OutstandingStatement
 
@@ -19,21 +19,21 @@ class DetailedActivityStatement(models.AbstractModel):
         }
         if kwargs.get("line_type") == "prior_lines":
             if kwargs.get("account_type") == "receivable":
-                title = _(
+                title = self.env._(
                     "Prior Balance up to %(ending_date)s in %(currency)s", **kwargs
                 )
             else:
-                title = _(
+                title = self.env._(
                     "Supplier Prior Balance up to %(ending_date)s in %(currency)s",
                     **kwargs,
                 )
         elif kwargs.get("line_type") == "ending_lines":
             if kwargs.get("account_type") == "receivable":
-                title = _(
+                title = self.env._(
                     "Ending Balance up to %(ending_date)s in %(currency)s", **kwargs
                 )
             else:
-                title = _(
+                title = self.env._(
                     "Supplier Ending Balance up to %(ending_date)s in %(currency)s",
                     **kwargs,
                 )

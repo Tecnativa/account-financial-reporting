@@ -1,7 +1,7 @@
 # Copyright 2018 ForgeFlow, S.L. (https://www.forgeflow.com)
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl.html).
 
-from odoo import _, api, models
+from odoo import api, models
 from odoo.tools.float_utils import float_is_zero
 
 
@@ -17,9 +17,11 @@ class OutstandingStatement(models.AbstractModel):
             "lang": partner.lang,
         }
         if kwargs.get("account_type") == "receivable":
-            title = _("Statement up to %(ending_date)s in %(currency)s", **kwargs)
+            title = self.env._(
+                "Statement up to %(ending_date)s in %(currency)s", **kwargs
+            )
         else:
-            title = _(
+            title = self.env._(
                 "Supplier Statement up to %(ending_date)s in %(currency)s", **kwargs
             )
         return title
@@ -31,7 +33,7 @@ class OutstandingStatement(models.AbstractModel):
         ) or (-1,)
         show_only_overdue = self.env.context.get("show_only_overdue", False)
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT l.id, m.name AS move_id, l.partner_id, l.date, l.name,
                 l.currency_id, l.company_id,
@@ -103,7 +105,7 @@ class OutstandingStatement(models.AbstractModel):
 
     def _display_outstanding_lines_sql_q2(self, sub):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
                 SELECT {sub}.partner_id, {sub}.currency_id, {sub}.move_id,
                     {sub}.date, {sub}.date_maturity, {sub}.debit, {sub}.credit,
@@ -121,7 +123,7 @@ class OutstandingStatement(models.AbstractModel):
 
     def _display_outstanding_lines_sql_q3(self, sub, company_id):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT {sub}.partner_id, {sub}.move_id, {sub}.date,
                 {sub}.date_maturity, {sub}.name, {sub}.ref, {sub}.debit,

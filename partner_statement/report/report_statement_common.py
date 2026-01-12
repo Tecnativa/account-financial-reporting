@@ -3,7 +3,7 @@
 
 from datetime import datetime, timedelta
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.tools.misc import DEFAULT_SERVER_DATE_FORMAT
 
 
@@ -24,7 +24,7 @@ class ReportStatementCommon(models.AbstractModel):
         kwargs["context"] = {
             "lang": partner.lang,
         }
-        return _("Aging Report at %(ending_date)s in %(currency)s", **kwargs)
+        return self.env._("Aging Report at %(ending_date)s in %(currency)s", **kwargs)
 
     def _format_date_to_partner_lang(
         self, date, date_format=DEFAULT_SERVER_DATE_FORMAT
@@ -64,7 +64,7 @@ class ReportStatementCommon(models.AbstractModel):
         ) or (-1,)
         show_only_overdue = self.env.context.get("show_only_overdue", False)
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT l.partner_id, l.currency_id, l.company_id, l.move_id,
             CASE WHEN l.balance > 0.0
@@ -120,7 +120,7 @@ class ReportStatementCommon(models.AbstractModel):
 
     def _show_buckets_sql_q2(self, date_end, minus_30, minus_60, minus_90, minus_120):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT partner_id, currency_id, date_maturity, open_due,
                 open_due_currency, move_id, company_id,
@@ -195,7 +195,7 @@ class ReportStatementCommon(models.AbstractModel):
 
     def _show_buckets_sql_q3(self, company_id):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT Q2.partner_id, current, b_1_30, b_30_60, b_60_90, b_90_120,
                                 b_over_120,
@@ -285,24 +285,24 @@ class ReportStatementCommon(models.AbstractModel):
 
     def _get_bucket_labels_days(self, date_end):
         return [
-            _("Current"),
-            _("1 - 30 Days"),
-            _("31 - 60 Days"),
-            _("61 - 90 Days"),
-            _("91 - 120 Days"),
-            _("121 Days +"),
-            _("Total"),
+            self.env._("Current"),
+            self.env._("1 - 30 Days"),
+            self.env._("31 - 60 Days"),
+            self.env._("61 - 90 Days"),
+            self.env._("91 - 120 Days"),
+            self.env._("121 Days +"),
+            self.env._("Total"),
         ]
 
     def _get_bucket_labels_months(self, date_end):
         return [
-            _("Current"),
-            _("1 Month"),
-            _("2 Months"),
-            _("3 Months"),
-            _("4 Months"),
-            _("Older"),
-            _("Total"),
+            self.env._("Current"),
+            self.env._("1 Month"),
+            self.env._("2 Months"),
+            self.env._("3 Months"),
+            self.env._("4 Months"),
+            self.env._("Older"),
+            self.env._("Total"),
         ]
 
     def _get_line_currency_defaults(
@@ -385,7 +385,7 @@ class ReportStatementCommon(models.AbstractModel):
 
         # There should be relatively few of these, so to speed performance
         # we cache them - default needed if partner lang not set
-        self._cr.execute(
+        self.env.cr.execute(
             """
             SELECT p.id, l.date_format
             FROM res_partner p LEFT JOIN res_lang l ON p.lang=l.code
@@ -393,7 +393,7 @@ class ReportStatementCommon(models.AbstractModel):
             """,
             {"partner_ids": tuple(partner_ids)},
         )
-        date_formats = {r[0]: r[1] for r in self._cr.fetchall()}
+        date_formats = {r[0]: r[1] for r in self.env.cr.fetchall()}
         default_fmt = self.env["res.lang"]._lang_get(self.env.user.lang).date_format
         currencies = {x.id: x for x in self.env["res.currency"].search([])}
 

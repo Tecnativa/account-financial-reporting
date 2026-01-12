@@ -18,13 +18,17 @@ class TestResConfigSettings(TransactionCase):
             )
         )
         cls.config = cls.env["res.config.settings"]
-        cls.cr.execute(
-            "SELECT uid FROM res_groups_users_rel "
-            "WHERE gid IN (SELECT res_id FROM ir_model_data "
-            "   WHERE module='account' AND name='group_account_invoice') "
-            "ORDER BY uid DESC LIMIT 1"
+        user = cls.env["res.users"].create(
+            {
+                "name": "Account Test User",
+                "login": "account_test",
+                "email": "account_test@example.com",
+                "group_ids": [
+                    (6, 0, [cls.env.ref("account.group_account_invoice").id])
+                ],
+            }
         )
-        cls.account_user = cls.cr.fetchone()[0]
+        cls.account_user = user.id
         cls.user_obj = cls.env["res.users"].with_user(cls.account_user)
 
     @users("admin")

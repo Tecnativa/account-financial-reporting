@@ -4,7 +4,7 @@
 from dateutil.relativedelta import relativedelta
 
 from odoo import api, fields, models
-from odoo.osv import expression
+from odoo.fields import Domain
 
 
 class StatementCommon(models.AbstractModel):
@@ -24,7 +24,7 @@ class StatementCommon(models.AbstractModel):
         help="Show only lines due before the selected date",
     )
     number_partner_ids = fields.Integer(
-        default=lambda self: len(self._context.get("active_ids", []))
+        default=lambda self: len(self.env.context.get("active_ids", []))
     )
     filter_partners_non_due = fields.Boolean(
         string="Don't show partners with no due entries", default=True
@@ -74,7 +74,7 @@ class StatementCommon(models.AbstractModel):
                         ("code", "=", account_code),
                     ]
                 )
-        return expression.OR(domains)
+        return Domain.OR(domains)
 
     def _get_excluded_accounts(self):
         self.ensure_one()
@@ -95,7 +95,7 @@ class StatementCommon(models.AbstractModel):
         return {
             "date_end": self.date_end,
             "company_id": self.company_id.id,
-            "partner_ids": self._context["active_ids"],
+            "partner_ids": self.env.context["active_ids"],
             "show_aging_buckets": self.show_aging_buckets,
             "show_only_overdue": self.show_only_overdue,
             "filter_non_due_partners": self.filter_partners_non_due,

@@ -2,7 +2,7 @@
 # Copyright 2022 ForgeFlow S.L.
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from odoo import _, models
+from odoo import models
 
 from odoo.addons.report_xlsx_helper.report.report_xlsx_format import (  # type: ignore
     FORMATS,
@@ -28,7 +28,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
 
     def _get_report_name(self, report, data=False):
         company_id = data.get("company_id", False)
-        report_name = _("Detailed Activity Statement")
+        report_name = self.env._("Detailed Activity Statement")
         if company_id:
             company = self.env["res.company"].browse(company_id)
             suffix = f" - {company.name} - {company.currency_id.name}"
@@ -51,7 +51,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 "col_pos": 2,
                 "sheet_func": "merge_range",
                 "span": 3,
-                "args": (_("Initial Balance"), FORMATS["format_tcell_left"]),
+                "args": (self.env._("Initial Balance"), FORMATS["format_tcell_left"]),
             },
             {
                 "col_pos": 6,
@@ -189,13 +189,22 @@ class DetailedActivityStatementXslx(models.AbstractModel):
             }
             for col_pos, args in enumerate(
                 [
-                    (_("Reference Number"), FORMATS["format_theader_yellow_center"]),
-                    (_("Date"), FORMATS["format_theader_yellow_center"]),
-                    (_("Due Date"), FORMATS["format_theader_yellow_center"]),
-                    (_("Description"), FORMATS["format_theader_yellow_center"]),
-                    (_("Original"), FORMATS["format_theader_yellow_center"]),
-                    (_("Open Amount"), FORMATS["format_theader_yellow_center"]),
-                    (_("Balance"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Reference Number"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Date"), FORMATS["format_theader_yellow_center"]),
+                    (self.env._("Due Date"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Description"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Original"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Open Amount"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Balance"), FORMATS["format_theader_yellow_center"]),
                 ]
             )
         ]
@@ -259,7 +268,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 "col_pos": 2,
                 "sheet_func": "merge_range",
                 "span": 3,
-                "args": (_("Ending Balance"), FORMATS["format_tcell_left"]),
+                "args": (self.env._("Ending Balance"), FORMATS["format_tcell_left"]),
             },
             {
                 "col_pos": 6,
@@ -331,13 +340,22 @@ class DetailedActivityStatementXslx(models.AbstractModel):
             }
             for col_pos, args in enumerate(
                 [
-                    (_("Reference Number"), FORMATS["format_theader_yellow_center"]),
-                    (_("Date"), FORMATS["format_theader_yellow_center"]),
-                    (_("Due Date"), FORMATS["format_theader_yellow_center"]),
-                    (_("Description"), FORMATS["format_theader_yellow_center"]),
-                    (_("Original"), FORMATS["format_theader_yellow_center"]),
-                    (_("Open Amount"), FORMATS["format_theader_yellow_center"]),
-                    (_("Balance"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Reference Number"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Date"), FORMATS["format_theader_yellow_center"]),
+                    (self.env._("Due Date"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Description"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Original"), FORMATS["format_theader_yellow_center"]),
+                    (
+                        self.env._("Open Amount"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
+                    (self.env._("Balance"), FORMATS["format_theader_yellow_center"]),
                 ]
             )
         ]
@@ -398,7 +416,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 "col_pos": 2,
                 "sheet_func": "merge_range",
                 "span": 3,
-                "args": (_("Ending Balance"), FORMATS["format_tcell_left"]),
+                "args": (self.env._("Ending Balance"), FORMATS["format_tcell_left"]),
             },
             {
                 "col_pos": 6,
@@ -486,7 +504,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
             company = self.env.user.company_id
         data.update(report_model._get_report_values(data.get("partner_ids"), data))
         partners = self.env["res.partner"].browse(data.get("partner_ids"))
-        sheet = workbook.add_worksheet(_("Detailed Activity Statement"))
+        sheet = workbook.add_worksheet(self.env._("Detailed Activity Statement"))
         sheet.set_landscape()
         row_pos = 0
         sheet.merge_range(
@@ -494,11 +512,13 @@ class DetailedActivityStatementXslx(models.AbstractModel):
             0,
             row_pos,
             6,
-            _("Statement of Account from %s") % (company.display_name,),
+            self.env._("Statement of Account from %s", company.display_name),
             FORMATS["format_ws_title"],
         )
         row_pos += 1
-        sheet.write(row_pos, 1, _("Date:"), FORMATS["format_theader_yellow_right"])
+        sheet.write(
+            row_pos, 1, self.env._("Date:"), FORMATS["format_theader_yellow_right"]
+        )
         sheet.write(
             row_pos,
             2,
@@ -512,7 +532,10 @@ class DetailedActivityStatementXslx(models.AbstractModel):
             )(partner)
             row_pos += 3
             sheet.write(
-                row_pos, 1, _("Statement to:"), FORMATS["format_theader_yellow_right"]
+                row_pos,
+                1,
+                self.env._("Statement to:"),
+                FORMATS["format_theader_yellow_right"],
             )
             sheet.merge_range(
                 row_pos,
@@ -526,7 +549,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 sheet.write(
                     row_pos,
                     4,
-                    _("VAT:"),
+                    self.env._("VAT:"),
                     FORMATS["format_theader_yellow_right"],
                 )
                 sheet.write(
@@ -537,7 +560,10 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 )
             row_pos += 1
             sheet.write(
-                row_pos, 1, _("Statement from:"), FORMATS["format_theader_yellow_right"]
+                row_pos,
+                1,
+                self.env._("Statement from:"),
+                FORMATS["format_theader_yellow_right"],
             )
             sheet.merge_range(
                 row_pos,
@@ -551,7 +577,7 @@ class DetailedActivityStatementXslx(models.AbstractModel):
                 sheet.write(
                     row_pos,
                     4,
-                    _("VAT:"),
+                    self.env._("VAT:"),
                     FORMATS["format_theader_yellow_right"],
                 )
                 sheet.write(

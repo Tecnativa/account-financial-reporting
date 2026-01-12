@@ -2,7 +2,7 @@
 # Copyright 2021 ForgeFlow S.L.
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
-from odoo import _, models
+from odoo import models
 
 from odoo.addons.report_xlsx_helper.report.report_xlsx_format import FORMATS
 
@@ -26,7 +26,7 @@ class ActivityStatementXslx(models.AbstractModel):
 
     def _get_report_name(self, report, data=False):
         company_id = data.get("company_id", False)
-        report_name = _("Activity Statement")
+        report_name = self.env._("Activity Statement")
         if company_id:
             company = self.env["res.company"].browse(company_id)
             suffix = f" - {company.name} - {company.currency_id.name}"
@@ -44,10 +44,10 @@ class ActivityStatementXslx(models.AbstractModel):
                 for col_pos, args in enumerate(
                     [
                         (
-                            _("Reference Number"),
+                            self.env._("Reference Number"),
                             FORMATS["format_theader_yellow_center"],
                         ),
-                        (_("Date"), FORMATS["format_theader_yellow_center"]),
+                        (self.env._("Date"), FORMATS["format_theader_yellow_center"]),
                     ]
                 )
             ]
@@ -56,7 +56,10 @@ class ActivityStatementXslx(models.AbstractModel):
                     "col_pos": 2,
                     "sheet_func": "merge_range",
                     "span": 1,
-                    "args": (_("Description"), FORMATS["format_theader_yellow_center"]),
+                    "args": (
+                        self.env._("Description"),
+                        FORMATS["format_theader_yellow_center"],
+                    ),
                 },
             ]
             + [
@@ -67,9 +70,18 @@ class ActivityStatementXslx(models.AbstractModel):
                 }
                 for col_pos, args in enumerate(
                     [
-                        (_("Original Amount"), FORMATS["format_theader_yellow_center"]),
-                        (_("Applied Amount"), FORMATS["format_theader_yellow_center"]),
-                        (_("Open Amount"), FORMATS["format_theader_yellow_center"]),
+                        (
+                            self.env._("Original Amount"),
+                            FORMATS["format_theader_yellow_center"],
+                        ),
+                        (
+                            self.env._("Applied Amount"),
+                            FORMATS["format_theader_yellow_center"],
+                        ),
+                        (
+                            self.env._("Open Amount"),
+                            FORMATS["format_theader_yellow_center"],
+                        ),
                     ],
                     4,
                 )
@@ -92,7 +104,7 @@ class ActivityStatementXslx(models.AbstractModel):
                 "col_pos": 2,
                 "sheet_func": "merge_range",
                 "span": 3,
-                "args": (_("Balance Forward"), FORMATS["format_tcell_left"]),
+                "args": (self.env._("Balance Forward"), FORMATS["format_tcell_left"]),
             },
             {
                 "col_pos": 6,
@@ -174,7 +186,7 @@ class ActivityStatementXslx(models.AbstractModel):
                 "col_pos": 2,
                 "sheet_func": "merge_range",
                 "span": 3,
-                "args": (_("Ending Balance"), FORMATS["format_tcell_left"]),
+                "args": (self.env._("Ending Balance"), FORMATS["format_tcell_left"]),
             },
             {
                 "col_pos": 6,
@@ -255,10 +267,11 @@ class ActivityStatementXslx(models.AbstractModel):
         currency_data = partner_data.get("currencies", {}).get(currency.id)
         if currency_data.get("buckets"):
             row_pos += 2
-            buckets_header = _("Aging Report at %(end)s in %(currency)s") % {
-                "end": partner_data.get("end"),
-                "currency": currency.display_name,
-            }
+            buckets_header = self.env._(
+                "Aging Report at %(end)s in %(currency)s",
+                end=partner_data.get("end"),
+                currency=currency.display_name,
+            )
             sheet.merge_range(
                 row_pos, 0, row_pos, 6, buckets_header, FORMATS["format_right_bold"]
             )
@@ -340,7 +353,7 @@ class ActivityStatementXslx(models.AbstractModel):
             company = self.env.user.company_id
         data.update(report_model._get_report_values(data.get("partner_ids"), data))
         partners = self.env["res.partner"].browse(data.get("partner_ids"))
-        sheet = workbook.add_worksheet(_("Activity Statement"))
+        sheet = workbook.add_worksheet(self.env._("Activity Statement"))
         sheet.set_landscape()
         row_pos = 0
         sheet.merge_range(
@@ -348,11 +361,13 @@ class ActivityStatementXslx(models.AbstractModel):
             0,
             row_pos,
             6,
-            _("Statement of Account from %s") % (company.display_name,),
+            self.env._("Statement of Account from %s", company.display_name),
             FORMATS["format_ws_title"],
         )
         row_pos += 1
-        sheet.write(row_pos, 1, _("Date:"), FORMATS["format_theader_yellow_right"])
+        sheet.write(
+            row_pos, 1, self.env._("Date:"), FORMATS["format_theader_yellow_right"]
+        )
         sheet.write(
             row_pos,
             2,
@@ -366,7 +381,10 @@ class ActivityStatementXslx(models.AbstractModel):
             )(partner)
             row_pos += 3
             sheet.write(
-                row_pos, 1, _("Statement to:"), FORMATS["format_theader_yellow_right"]
+                row_pos,
+                1,
+                self.env._("Statement to:"),
+                FORMATS["format_theader_yellow_right"],
             )
             sheet.merge_range(
                 row_pos,
@@ -380,7 +398,7 @@ class ActivityStatementXslx(models.AbstractModel):
                 sheet.write(
                     row_pos,
                     4,
-                    _("VAT:"),
+                    self.env._("VAT:"),
                     FORMATS["format_theader_yellow_right"],
                 )
                 sheet.write(
@@ -391,7 +409,10 @@ class ActivityStatementXslx(models.AbstractModel):
                 )
             row_pos += 1
             sheet.write(
-                row_pos, 1, _("Statement from:"), FORMATS["format_theader_yellow_right"]
+                row_pos,
+                1,
+                self.env._("Statement from:"),
+                FORMATS["format_theader_yellow_right"],
             )
             sheet.merge_range(
                 row_pos,
@@ -405,7 +426,7 @@ class ActivityStatementXslx(models.AbstractModel):
                 sheet.write(
                     row_pos,
                     4,
-                    _("VAT:"),
+                    self.env._("VAT:"),
                     FORMATS["format_theader_yellow_right"],
                 )
                 sheet.write(

@@ -3,7 +3,7 @@
 
 from collections import defaultdict
 
-from odoo import _, api, models
+from odoo import api, models
 
 from .outstanding_statement import OutstandingStatement
 
@@ -21,14 +21,14 @@ class ActivityStatement(models.AbstractModel):
         }
         if kwargs.get("is_detailed"):
             if kwargs.get("account_type") == "receivable":
-                title = _(
+                title = self.env._(
                     "Detailed Statement "
                     "between %(starting_date)s and %(ending_date)s "
                     "in %(currency)s",
                     **kwargs,
                 )
             else:
-                title = _(
+                title = self.env._(
                     "Detailed Supplier Statement "
                     "between %(starting_date)s and %(ending_date)s "
                     "in %(currency)s",
@@ -36,14 +36,14 @@ class ActivityStatement(models.AbstractModel):
                 )
         else:
             if kwargs.get("account_type") == "receivable":
-                title = _(
+                title = self.env._(
                     "Statement between "
                     "%(starting_date)s and %(ending_date)s "
                     "in %(currency)s",
                     **kwargs,
                 )
             else:
-                title = _(
+                title = self.env._(
                     "Supplier Statement "
                     "between %(starting_date)s and %(ending_date)s "
                     "in %(currency)s",
@@ -56,7 +56,7 @@ class ActivityStatement(models.AbstractModel):
             self.env.context.get("excluded_accounts_ids", [])
         ) or (-1,)
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT l.partner_id, l.currency_id, l.company_id, l.id,
                 CASE WHEN l.balance > 0.0
@@ -107,7 +107,7 @@ class ActivityStatement(models.AbstractModel):
 
     def _initial_balance_sql_q2(self, sub):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT {sub}.partner_id, {sub}.currency_id,
                 sum(CASE WHEN {sub}.currency_id is not null
@@ -123,7 +123,7 @@ class ActivityStatement(models.AbstractModel):
 
     def _initial_balance_sql_q3(self, sub, company_id):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT {sub}.partner_id, {sub}.balance,
                 COALESCE({sub}.currency_id, c.currency_id) AS currency_id
@@ -164,9 +164,9 @@ class ActivityStatement(models.AbstractModel):
             self.env.context.get("excluded_accounts_ids", [])
         ) or (-1,)
         show_only_overdue = self.env.context.get("show_only_overdue", False)
-        payment_ref = _("Payment")
+        payment_ref = self.env._("Payment")
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 """
             SELECT m.name AS move_id, l.partner_id, l.date,
                 array_agg(l.id ORDER BY l.id) as ids,
@@ -222,7 +222,7 @@ class ActivityStatement(models.AbstractModel):
 
     def _display_activity_lines_sql_q2(self, sub, company_id):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT {sub}.partner_id, {sub}.move_id, {sub}.date, {sub}.date_maturity,
                 {sub}.name, {sub}.case_ref as ref, {sub}.debit, {sub}.credit, {sub}.ids,
@@ -265,7 +265,7 @@ class ActivityStatement(models.AbstractModel):
 
     def _display_activity_reconciled_lines_sql_q1(self, sub):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT unnest(ids) as id
             FROM {sub}
@@ -277,7 +277,7 @@ class ActivityStatement(models.AbstractModel):
 
     def _display_activity_reconciled_lines_sql_q2(self, sub, date_end):
         return str(
-            self._cr.mogrify(
+            self.env.cr.mogrify(
                 f"""
             SELECT l.id as rel_id, m.name AS move_id, l.partner_id, l.date, l.name,
                 l.currency_id, l.company_id, {sub}.id,

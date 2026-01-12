@@ -9,7 +9,7 @@
         <field name="res_model">activity.statement.wizard</field>
         <field name="view_mode">form</field>
         <field
-            name="groups_id"
+            name="group_ids"
             eval="[(4, ref('partner_statement.group_activity_statement'))]"
         />
         <field name="target">new</field>
@@ -20,7 +20,7 @@
         <field name="res_model">outstanding.statement.wizard</field>
         <field name="view_mode">form</field>
         <field
-            name="groups_id"
+            name="group_ids"
             eval="[(4, ref('partner_statement.group_outstanding_statement'))]"
         />
         <field name="target">new</field>
@@ -34,7 +34,7 @@
         <field name="res_model">detailed.activity.statement.wizard</field>
         <field name="view_mode">form</field>
         <field
-            name="groups_id"
+            name="group_ids"
             eval="[(4, ref('partner_statement.group_activity_statement'))]"
         />
         <field name="target">new</field>
