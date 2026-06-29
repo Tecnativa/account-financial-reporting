@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-06-29 18:46+0000\n"
+"PO-Revision-Date: 2026-06-29 19:18+0000\n"
 "Last-Translator: Gerardo Alí Ferraro Schelijasch <gerferr83@gmail.com>\n"
 "Language-Team: none\n"
 "Language: es_VE\n"
@@ -126,6 +126,16 @@ msgid ""
 "                <br/>\n"
 "                <br/>"
 msgstr ""
+"<span class=\"o_form_label\">La declaración de actividad detallada es una "
+"extensión de la\n"
+"                    de la declaración de actividad y tiene como objetivo "
+"explicar las transacciones.\n"
+"                    que hayan ocurrido durante el periodo, disponiendo "
+"además de una sección de Saldo Anterior\n"
+"                    y una sección de Saldo Final.\n"
+"                </span>\n"
+"                <br/>\n"
+"                <br/>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_wizard_view
@@ -141,6 +151,21 @@ msgid ""
 "                <br/>\n"
 "                <br/>"
 msgstr ""
+"<span class=\"o_form_label\">La declaración de actividad proporciona "
+"detalles de toda la actividad en\n"
+"                    las cuentas por cobrar y por pagar de un partner entre "
+"dos fechas seleccionadas. Esto incluye \n"
+"                    todas las facturas,\n"
+"                    devoluciones y pagos. Cualquier saldo pendiente con "
+"fecha anterior al estado de cuenta \n"
+"                    elegido\n"
+"                    período aparecerá como un saldo adelantado en la parte "
+"superior del estado de cuenta. la lista \n"
+"                    se muestra en orden cronológico y se divide por "
+"monedas.\n"
+"                </span>\n"
+"                <br/>\n"
+"                <br/>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_document
@@ -212,7 +237,7 @@ msgstr "Informe XLSL de la declaración de actividad"
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.res_config_settings_view_form
 msgid "Activity Statements"
-msgstr ""
+msgstr "Estado de Cuentas"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.res_config_settings_view_form
@@ -714,7 +739,7 @@ msgstr ""
 #. module: partner_statement
 #: model:ir.model,name:partner_statement.model_report_p_s_report_statement_common_xlsx
 msgid "Statement Common XLSX Report"
-msgstr ""
+msgstr "Declaración de informe XLSX común"
 
 #. module: partner_statement
 #: model:ir.model,name:partner_statement.model_statement_common
