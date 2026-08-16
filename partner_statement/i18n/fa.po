@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"PO-Revision-Date: 2026-08-16 10:21+0000\n"
+"PO-Revision-Date: 2026-08-16 11:42+0000\n"
 "Last-Translator: sobhan hasanzade <sobhanhsnzde4579@gmail.com>\n"
 "Language-Team: none\n"
 "Language: fa\n"
@@ -50,25 +50,25 @@ msgstr "۳ ماه"
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "31 - 60 Days"
-msgstr ""
+msgstr "۳۱ تا ۶۰ روز"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "4 Months"
-msgstr ""
+msgstr "۴ ماه"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "61 - 90 Days"
-msgstr ""
+msgstr "۶۱ تا ۹۰ روز"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "91 - 120 Days"
-msgstr ""
+msgstr "۹۱ تا ۱۲۰ روز"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.statement_common_view
@@ -78,6 +78,13 @@ msgid ""
 "                        buckets, so the partner can review how much is open, due or overdue.\n"
 "                    </span>"
 msgstr ""
+"<span class=\"o_form_label\">جزئیات سررسید را می‌توان در گزارش نمایش داد که "
+"بر اساس\n"
+"                        گروه‌های سنی\n"
+"                        (بازه‌های سررسید) بیان می‌شود؛ بنابراین طرف حساب "
+"می‌تواند بررسی کند که چه مقدار از مبلغ باز (تسویه‌نشده)، سررسید‌شده یا دیرکرد "
+"دارد.\n"
+"                    </span>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_wizard_view
@@ -93,6 +100,20 @@ msgid ""
 "                <br/>\n"
 "                <br/>"
 msgstr ""
+"<span class=\"o_form_label\">صورت‌وضعیت فعالیت، جزئیات تمام فعالیت‌های مربوط "
+"به مطالبات و پرداختنی‌های یک طرف حساب را بین دو تاریخ انتخاب‌شده ارائه می‌دهد. "
+"این شامل تمام\n"
+"                    فاکتورها،\n"
+"                    استردادها و پرداخت‌ها می‌شود. هر مانده‌ی تسویه‌نشده‌ای که "
+"تاریخ آن قبل از دوره‌ی\n"
+"                    صورت‌وضعیت\n"
+"                    انتخاب‌شده باشد، به عنوان مانده‌ی انتقالی در بالای "
+"صورت‌وضعیت نمایش داده می‌شود. لیست به\n"
+"                    ترتیب\n"
+"                    زمانی نمایش داده می‌شود و بر اساس ارزها تفکیک می‌گردد.\n"
+"                </span>\n"
+"                <br/>\n"
+"                <br/>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.detailed_activity_statement_wizard_view
@@ -105,6 +126,15 @@ msgid ""
 "                <br/>\n"
 "                <br/>"
 msgstr ""
+"<span class=\"o_form_label\">\n"
+"صورت‌وضعیت فعالیت دقیق، توسعه‌یافته‌ی صورت‌وضعیت فعالیت است و هدف آن توضیح "
+"تراکنش‌هایی\n"
+"                    است که در طول دوره رخ داده‌اند، و همچنین دارای بخش‌های "
+"مانده‌ی ابتدای دوره و\n"
+"                    مانده‌ی پایان دوره می‌باشد.\n"
+"                </span>\n"
+"                <br/>\n"
+"                <br/>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_wizard_view
@@ -120,34 +150,46 @@ msgid ""
 "                <br/>\n"
 "                <br/>"
 msgstr ""
+"<span class=\"o_form_label\">\n"
+"                    صورت‌وضعیت مانده‌ی باز، جزئیات تمام مطالبات و پرداختنی‌های\n"
+"                    باز\n"
+"                    یک طرف حساب را تا یک تاریخ مشخص ارائه می‌دهد. این شامل "
+"تمام فاکتورهای پرداخت‌نشده،\n"
+"                    استردادهای ادعا نشده و پرداخت‌های باز می‌شود. لیست به "
+"ترتیب زمانی نمایش داده می‌شود\n"
+"                    و\n"
+"                    بر اساس ارزها تفکیک می‌گردد.\n"
+"                </span>\n"
+"                <br/>\n"
+"                <br/>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.detailed_activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_document
 msgid "<strong>Date:</strong>"
-msgstr ""
+msgstr "<strong>تاریخ:</strong>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.detailed_activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_document
 msgid "<strong>Partner Code:</strong>"
-msgstr ""
+msgstr "<strong>کد طرف حساب:</strong>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.detailed_activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_document
 msgid "<strong>Partner Name:</strong>"
-msgstr ""
+msgstr "<strong>نام طرف حساب:</strong>"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.detailed_activity_statement_document
 #: model_terms:ir.ui.view,arch_db:partner_statement.outstanding_statement_document
 msgid "<strong>The partner doesn't have due entries.</strong>"
-msgstr ""
+msgstr "<strong>طرف حساب هیچ سررسید ثبت‌شده‌ای ندارد.</strong>"
 
 #. module: partner_statement
 #: model:ir.model.fields,field_description:partner_statement.field_activity_statement_wizard__account_type
@@ -155,7 +197,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:partner_statement.field_outstanding_statement_wizard__account_type
 #: model:ir.model.fields,field_description:partner_statement.field_statement_common_wizard__account_type
 msgid "Account Type"
-msgstr ""
+msgstr "نوع حساب"
 
 #. module: partner_statement
 #: model:ir.model.fields,field_description:partner_statement.field_activity_statement_wizard__excluded_accounts_selector
@@ -163,7 +205,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:partner_statement.field_outstanding_statement_wizard__excluded_accounts_selector
 #: model:ir.model.fields,field_description:partner_statement.field_statement_common_wizard__excluded_accounts_selector
 msgid "Accounts to exclude"
-msgstr ""
+msgstr "حساب‌های مستثنی"
 
 #. module: partner_statement
 #. odoo-python
@@ -171,32 +213,32 @@ msgstr ""
 #: model:ir.actions.report,name:partner_statement.action_print_activity_statement
 #: model:ir.actions.report,name:partner_statement.action_print_activity_statement_html
 msgid "Activity Statement"
-msgstr ""
+msgstr "صورت‌حساب فعالیت"
 
 #. module: partner_statement
 #: model:ir.model,name:partner_statement.model_activity_statement_wizard
 msgid "Activity Statement Wizard"
-msgstr ""
+msgstr "ویزارد صورت‌حساب فعالیت"
 
 #. module: partner_statement
 #: model:ir.model,name:partner_statement.model_report_p_s_report_activity_statement_xlsx
 msgid "Activity Statement XLSL Report"
-msgstr ""
+msgstr "گزارش XLSL صورت‌حساب فعالیت"
 
 #. module: partner_statement
 #: model:ir.actions.report,name:partner_statement.action_print_activity_statement_xlsx
 msgid "Activity Statement XLSX"
-msgstr ""
+msgstr "صورت‌حساب فعالیت XLSX"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.res_config_settings_view_form
 msgid "Activity Statements"
-msgstr ""
+msgstr "صورت‌حساب‌های فعالیت"
 
 #. module: partner_statement
 #: model_terms:ir.ui.view,arch_db:partner_statement.res_config_settings_view_form
 msgid "Activity Statements show all transactions between two dates."
-msgstr ""
+msgstr "صورت‌حساب‌های فعالیت تمام تراکنش‌های بین دو تاریخ را نمایش می‌دهند."
 
 #. module: partner_statement
 #: model:ir.model.fields.selection,name:partner_statement.selection__activity_statement_wizard__aging_type__days
@@ -205,7 +247,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:partner_statement.selection__res_config_settings__default_aging_type__days
 #: model:ir.model.fields.selection,name:partner_statement.selection__statement_common_wizard__aging_type__days
 msgid "Age by Days"
-msgstr ""
+msgstr "سن بر اساس روز"
 
 #. module: partner_statement
 #: model:ir.model.fields.selection,name:partner_statement.selection__activity_statement_wizard__aging_type__months
@@ -214,7 +256,7 @@ msgstr ""
 #: model:ir.model.fields.selection,name:partner_statement.selection__res_config_settings__default_aging_type__months
 #: model:ir.model.fields.selection,name:partner_statement.selection__statement_common_wizard__aging_type__months
 msgid "Age by Months"
-msgstr ""
+msgstr "سن بر اساس ماه"
 
 #. module: partner_statement
 #: model:ir.model.fields,field_description:partner_statement.field_activity_statement_wizard__aging_type
@@ -223,13 +265,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:partner_statement.field_res_config_settings__default_aging_type
 #: model:ir.model.fields,field_description:partner_statement.field_statement_common_wizard__aging_type
 msgid "Aging Method"
-msgstr ""
+msgstr "روش سررسید"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common_xlsx.py:0
 msgid "Aging Report at %(end)s in %(currency)s"
-msgstr ""
+msgstr "گزارش سررسید در %(end)s به %(currency)s"
 
 #. module: partner_statement
 #. odoo-python
