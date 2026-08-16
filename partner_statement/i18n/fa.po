@@ -6,43 +6,45 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
-"Last-Translator: Automatically generated\n"
+"PO-Revision-Date: 2026-08-16 10:21+0000\n"
+"Last-Translator: sobhan hasanzade <sobhanhsnzde4579@gmail.com>\n"
 "Language-Team: none\n"
 "Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
 "Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: Weblate 5.15.2\n"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "1 - 30 Days"
-msgstr ""
+msgstr "۱ تا ۳۰ روز"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "1 Month"
-msgstr ""
+msgstr "۱ ماه"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "121 Days +"
-msgstr ""
+msgstr "121 روز +"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "2 Months"
-msgstr ""
+msgstr "۲ ماه"
 
 #. module: partner_statement
 #. odoo-python
 #: code:addons/partner_statement/report/report_statement_common.py:0
 msgid "3 Months"
-msgstr ""
+msgstr "۳ ماه"
 
 #. module: partner_statement
 #. odoo-python
