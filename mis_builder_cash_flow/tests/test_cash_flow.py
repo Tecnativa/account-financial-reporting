@@ -3,6 +3,7 @@
 
 from datetime import timedelta
 
+from odoo import Command
 from odoo.exceptions import ValidationError
 from odoo.fields import Date
 from odoo.tests.common import TransactionCase, tagged
@@ -11,109 +12,110 @@ from odoo.tools import mute_logger
 
 @tagged("post_install", "-at_install")
 class TestCashFlow(TransactionCase):
-    def setUp(self):
-        super().setUp()
-        self.company = self.env["res.company"].create({"name": "TEST"})
-        self.report = self.browse_ref("mis_builder_cash_flow.mis_instance_cash_flow")
-        self.report.company_id = self.company
-        self.bank_account = self.env["account.account"].create(
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.company = cls.env["res.company"].create({"name": "TEST"})
+        cls.report = cls.env.ref("mis_builder_cash_flow.mis_instance_cash_flow")
+        cls.report.company_id = cls.company
+        cls.bank_account = cls.env["account.account"].create(
             {
-                "company_ids": [(6, 0, [self.company.id])],
+                "company_ids": [Command.set(cls.company.ids)],
                 "code": "TEST1",
                 "name": "Bank account 01",
                 "account_type": "asset_cash",
             }
         )
-        self.bank_account_hide = self.env["account.account"].create(
+        cls.bank_account_hide = cls.env["account.account"].create(
             {
-                "company_ids": [(6, 0, [self.company.id])],
+                "company_ids": [Command.set(cls.company.ids)],
                 "code": "TEST2",
                 "name": "Bank account 02",
                 "account_type": "asset_cash",
                 "hide_in_cash_flow": True,
             }
         )
-        self.account = self.env["account.account"].create(
+        cls.account = cls.env["account.account"].create(
             {
-                "company_ids": [(6, 0, [self.company.id])],
+                "company_ids": [Command.set(cls.company.ids)],
                 "code": "TEST3",
                 "name": "Account",
                 "account_type": "asset_cash",
                 "reconcile": True,
             }
         )
-        self.journal = self.env["account.journal"].create(
+        cls.journal = cls.env["account.journal"].create(
             {
                 "name": "Journal",
                 "code": "JOURNAL",
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "type": "general",
             }
         )
-        self.partner = self.env["res.partner"].create({"name": "Partner"})
-        self.plan_monthly = self.env["mis.cash.flow.plan"].create(
+        cls.partner = cls.env["res.partner"].create({"name": "Partner"})
+        cls.plan_monthly = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "Plan Monthly",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-03-01"),
                 "periodicity": "months",
             }
         )
-        self.plan_weekly = self.env["mis.cash.flow.plan"].create(
+        cls.plan_weekly = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "Plan Weekly",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-01-22"),
                 "periodicity": "weeks",
             }
         )
-        self.plan_days = self.env["mis.cash.flow.plan"].create(
+        cls.plan_days = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "Plan Days",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-01-21"),
                 "periodicity": "days",
                 "every_x_days": 10,
             }
         )
-        self.plan_with_values = self.env["mis.cash.flow.plan"].create(
+        cls.plan_with_values = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "My Plan",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
-                "partner_id": self.partner.id,
+                "company_id": cls.company.id,
+                "partner_id": cls.partner.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-01-01"),
                 "periodicity": "months",
             }
         )
-        self.plan_regenerate = self.env["mis.cash.flow.plan"].create(
+        cls.plan_regenerate = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "Plan Regenerate",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-02-01"),
                 "periodicity": "months",
             }
         )
-        self.plan_limit = self.env["mis.cash.flow.plan"].create(
+        cls.plan_limit = cls.env["mis.cash.flow.plan"].create(
             {
                 "name": "Plan Limit",
-                "account_id": self.account.id,
+                "account_id": cls.account.id,
                 "balance": 100,
-                "company_id": self.company.id,
+                "company_id": cls.company.id,
                 "date_start": Date.to_date("2024-01-01"),
                 "date_end": Date.to_date("2024-12-31"),
                 "periodicity": "days",
@@ -124,7 +126,6 @@ class TestCashFlow(TransactionCase):
     def test_company_constrain(self):
         # Create another company
         other_company = self.env["res.company"].create({"name": "OTHER_COMPANY"})
-
         # Try to create a forecast line with a company that is not in the
         # account's companies
         with self.assertRaises(ValidationError):
@@ -136,7 +137,6 @@ class TestCashFlow(TransactionCase):
                     "company_id": other_company.id,  # Different company
                 }
             )
-
         # Test that it works when the company is in the account's companies
         forecast_line = self.env["mis.cash_flow.forecast_line"].create(
             {

@@ -4,7 +4,7 @@
 
 from dateutil.relativedelta import relativedelta
 
-from odoo import _, api, fields, models
+from odoo import api, fields, models
 from odoo.exceptions import ValidationError
 
 
@@ -40,14 +40,12 @@ class MisCashFlowPlan(models.Model):
 
     @api.depends("forecast_line_ids")
     def _compute_forecast_line_count(self):
-        counts = self.env["mis.cash_flow.forecast_line"].read_group(
-            [("cash_flow_plan_id", "in", self.ids)],
-            ["cash_flow_plan_id"],
-            ["cash_flow_plan_id"],
+        counts = self.env["mis.cash_flow.forecast_line"]._read_group(
+            domain=[("cash_flow_plan_id", "in", self.ids)],
+            groupby=["cash_flow_plan_id"],
+            aggregates=["__count"],
         )
-        mapped = {
-            r["cash_flow_plan_id"][0]: r["cash_flow_plan_id_count"] for r in counts
-        }
+        mapped = {r[0].id: r[1] for r in counts}
         for plan in self:
             plan.forecast_line_count = mapped.get(plan.id, 0)
 
@@ -55,9 +53,13 @@ class MisCashFlowPlan(models.Model):
     def _check_constraints(self):
         for record in self:
             if record.date_end < record.date_start:
-                raise ValidationError(_("End Date cannot be earlier than Start Date."))
+                raise ValidationError(
+                    self.env._("End Date cannot be earlier than Start Date.")
+                )
             if record.periodicity == "days" and record.every_x_days <= 0:
-                raise ValidationError(_("The day interval must be greater than zero."))
+                raise ValidationError(
+                    self.env._("The day interval must be greater than zero.")
+                )
 
     def _prepare_plan_forecast_line(self, line_date):
         self.ensure_one()
@@ -98,8 +100,8 @@ class MisCashFlowPlan(models.Model):
                 "type": "ir.actions.client",
                 "tag": "display_notification",
                 "params": {
-                    "title": _("Generation limit reached"),
-                    "message": _(
+                    "title": self.env._("Generation limit reached"),
+                    "message": self.env._(
                         "Only %(limit)d forecast lines were created. "
                         "Reduce the date range or increase the interval "
                         "to generate all lines.",
@@ -115,10 +117,10 @@ class MisCashFlowPlan(models.Model):
     def action_view_generated_forecast_lines(self):
         self.ensure_one()
         return {
-            "name": _("Forecast Lines for Plan: %s") % self.name,
+            "name": self.env._("Forecast Lines for Plan: %(name)s", name=self.name),
             "type": "ir.actions.act_window",
             "res_model": "mis.cash_flow.forecast_line",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "domain": [("cash_flow_plan_id", "=", self.id)],
             "context": {"default_cash_flow_plan_id": self.id},
             "target": "current",

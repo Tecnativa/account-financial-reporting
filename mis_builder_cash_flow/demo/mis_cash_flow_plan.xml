@@ -4,7 +4,7 @@
         <field name="name">Office Rent</field>
         <field name="code">CF001</field>
         <field name="account_type">expense</field>
-        <field name="company_id" ref="base.main_company" />
+        <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]" />
     </record>
 
     <record id="mis_cash_flow_plan_office_rent" model="mis.cash.flow.plan">
