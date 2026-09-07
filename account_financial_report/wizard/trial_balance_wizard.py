@@ -4,8 +4,11 @@
 # Copyright 2018 ForgeFlow, S.L.
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl.html).
 
+import re
+
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
+from odoo.osv import expression
 from odoo.tools import date_utils
 
 
@@ -71,6 +74,8 @@ class TrialBalanceReportWizard(models.TransientModel):
     grouped_by = fields.Selection(
         selection=[("analytic_account", "Analytic Account")], default=False
     )
+    use_account_prefix = fields.Boolean()
+    account_prefix = fields.Char()
 
     @api.onchange("grouped_by")
     def onchange_grouped_by(self):
@@ -282,3 +287,19 @@ class TrialBalanceReportWizard(models.TransientModel):
     def _export(self, report_type):
         """Default export is PDF."""
         return self._print_report(report_type)
+
+    @api.onchange("account_prefix")
+    def onchange_account_prefix(self):
+        if self.use_account_prefix:
+            delimiter_pattern = re.compile(r"[;,]\s*")
+            domain = expression.OR(
+                [
+                    [("code", "=like", f"{prefix}%")]
+                    for prefix in delimiter_pattern.split(self.account_prefix or "")
+                ]
+            )
+            if self.company_id:
+                domain = expression.AND(
+                    [domain, [("company_ids", "in", self.company_id.ids)]]
+                )
+            self.account_ids = self.env["account.account"].search(domain)
