@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+ <t t-name="account_financial_report.AccountReportLines">
+        <tr>
+            <t t-foreach="columns" t-as="column" t-key="column.key">
+                <td t-if="column.show">
+                    <span
+                        t-out="row.values.find((val) => (val.key === column.key))?.value"
+                    />
+                </td>
+            </t>
+        </tr>
+    </t>
+</templates>

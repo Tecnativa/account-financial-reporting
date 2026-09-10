@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportSidebar">
+        <div class="o_financial_report_sidebar" />
+    </t>
+</templates>

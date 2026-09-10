@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportHeader">
+        <div class="border-bottom pb-2 mb-3 bg-white rounded shadow-sm p-3 text-center">
+            <h2 class="h4 mb-0">
+                <span t-out="title" />
+            </h2>
+        </div>
+    </t>
+</templates>

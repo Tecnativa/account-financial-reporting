@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportTable">
+        <div
+            class="d-flex flex-column gap-3 bg-white rounded shadow-sm p-3 overflow-y-auto"
+        >
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <t t-foreach="getColumns" t-as="column" t-key="column.key">
+                                <th t-if="column.show">
+                                    <span t-out="column.label" />
+                                </th>
+                            </t>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <t t-foreach="getRows" t-as="row" t-key="row.id">
+                            <AccountReportLines columns="getColumns" row="row" />
+                        </t>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </t>
+</templates>

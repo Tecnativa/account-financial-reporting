@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportView">
+        <Layout>
+            <div class="container-fluid bg-body-tertiary vh-100 overflow-auto">
+                <div class="row">
+                    <aside class="col-12 col-md-3 col-xl-2">
+                        <AccountReportSidebar />
+                    </aside>
+                    <main class="col-12 col-md-9 col-xl-10">
+                        <div class="d-flex flex-column gap-3">
+                            <AccountReportHeader env="env" />
+                            <AccountReportContent env="env" />
+                        </div>
+                    </main>
+                </div>
+            </div>
+        </Layout>
+    </t>
+</templates>

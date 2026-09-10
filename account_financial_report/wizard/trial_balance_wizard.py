@@ -128,7 +128,7 @@ class TrialBalanceReportWizard(models.TransientModel):
                 ("company_ids", "in", [self.company_id.id or self.env.company.id]),
             ]
         )
-        return count == 1
+        return True or count
 
     @api.onchange("company_id")
     def onchange_company_id(self):
@@ -241,18 +241,33 @@ class TrialBalanceReportWizard(models.TransientModel):
     def _print_report(self, report_type):
         self.ensure_one()
         data = self._prepare_report_data()
-        if report_type == "xlsx":
-            report_name = "a_f_r.report_trial_balance_xlsx"
-        else:
-            report_name = "account_financial_report.trial_balance"
-        return (
-            self.env["ir.actions.report"]
-            .search(
-                [("report_name", "=", report_name), ("report_type", "=", report_type)],
-                limit=1,
-            )
-            .report_action(self, data=data)
-        )
+        # if report_type == "xlsx":
+        #     report_name = "a_f_r.report_trial_balance_xlsx"
+        # else:
+        #     report_name = "account_financial_report.trial_balance"
+        # return (
+        #     self.env["ir.actions.report"]
+        #     .search(
+        #         [
+        #           ("report_name", "=", report_name),
+        #           ("report_type", "=", report_type)
+        #         ],
+        #         limit=1,
+        #     )
+        #     .report_action(self, data=data)
+        # )
+        return {
+            "type": "ir.actions.client",
+            "tag": "account_report_view",
+            "params": {
+                "active_id": self.id,
+                "model": self._name,
+                "report_model": "report.account_financial_report.trial_balance",
+                "report_type": "trial_balance",
+                "report_name": self.env._("Trial Balance"),
+                "data": data,
+            },
+        }
 
     def _prepare_report_trial_balance(self):
         # TODO: Kept for compatibility - To be merged into _prepare_report_data in 19

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportContent">
+        <div class="d-flex flex-column flex-grow-1">
+            <AccountReportFilters env="env" />
+            <div class="d-flex justify-content-end">
+                <Pager
+                    offset="pagination.offset"
+                    limit="pagination.limit"
+                    total="totalRows"
+                    onUpdate.bind="onPagerUpdate"
+                />
+            </div>
+            <AccountReportTable env="env" />
+        </div>
+    </t>
+</templates>

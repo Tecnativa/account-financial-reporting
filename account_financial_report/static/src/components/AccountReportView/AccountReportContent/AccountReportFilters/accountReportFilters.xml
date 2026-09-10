@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportFilters">
+        <div class="bg-white border rounded px-3 py-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="fw-semibold text-muted me-2">
+                    Filters:
+                </span>
+                <t t-foreach="filters" t-as="filter" t-key="filter.key">
+                    <div class="d-flex align-items-center border rounded bg-light">
+                        <span class="px-2 py-1 text-muted small">
+                            <t t-out="filter.label" />
+                        </span>
+
+                        <span class="px-2 py-1 fw-semibold small">
+                            <t t-out="filter.value" />
+                        </span>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>
