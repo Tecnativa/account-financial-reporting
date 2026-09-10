@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t t-name="account_financial_report.AccountReportTrialBalance">
+        <t t-if="!options.showPartnerDetails">
+            <div
+                class="d-flex flex-column gap-3 bg-white rounded shadow-sm p-3 overflow-y-auto"
+            >
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <t
+                                    t-foreach="getColumns"
+                                    t-as="column"
+                                    t-key="column.key"
+                                >
+                                    <th t-if="column.show">
+                                        <span t-out="column.label" />
+                                    </th>
+                                </t>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="getRows" t-as="row" t-key="row.id">
+                                <AccountReportLines columns="getColumns" row="row" />
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </t>
+        <t t-if="options.showPartnerDetails">
+            <t t-foreach="getRows" t-as="row" t-key="row.id">
+                <div
+                    class="d-flex flex-column gap-3 m-1 bg-white rounded shadow-sm p-3 overflow-y-auto"
+                >
+                    <div class="table-responsive m-1">
+                        <table class="table caption-top table-hover align-middle mb-0">
+                            <caption>
+                                <span t-out="row.account.code" />-<span
+                                t-out="row.account.name"
+                            />
+                            </caption>
+                            <thead class="table-light">
+                                <tr>
+                                    <t
+                                        t-foreach="getColumns"
+                                        t-as="column"
+                                        t-key="column.key"
+                                    >
+                                        <th t-if="column.show">
+                                            <span t-out="column.label" />
+                                        </th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    t-foreach="row.partners"
+                                    t-as="partner"
+                                    t-key="partner_index"
+                                >
+                                    <AccountReportLines
+                                        columns="getColumns"
+                                        row="partner"
+                                    />
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr class="border-top fw-bold">
+                                    <td>
+                                        <span t-out="row.account.code" />-<span
+                                        t-out="row.account.name"
+                                    />
+                                    </td>
+                                    <AccountReportLines
+                                        columns="getColumns"
+                                        row="row"
+                                    />
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </t>
+        </t>
+    </t>
+</templates>

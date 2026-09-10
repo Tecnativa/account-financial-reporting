@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+ <t t-name="account_financial_report.AccountReportLines">
+        <t t-foreach="columns" t-as="column" t-key="column.key">
+            <td
+                t-if="column.show and row.values.find((val) => (val.key === column.key))"
+            >
+                <span
+                    t-out="row.values.find((val) => (val.key === column.key))?.value"
+                    t-on-click="column.clickable ? () => this.openMoveLines(row, column.key) : () => {}"
+                    t-att-class="column.clickable ? 'text-primary text-decoration-underline cursor-pointer' : ''"
+                />
+            </td>
+        </t>
+    </t>
+</templates>

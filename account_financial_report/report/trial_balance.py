@@ -7,6 +7,7 @@
 from odoo import api, models
 from odoo.exceptions import UserError
 from odoo.tools.float_utils import float_is_zero
+from odoo.tools.misc import format_date
 
 
 class TrialBalanceReport(models.AbstractModel):
@@ -1026,8 +1027,8 @@ class TrialBalanceReport(models.AbstractModel):
                 "company_name": company.display_name,
                 "company_currency": company.currency_id,
                 "currency_name": company.currency_id.name,
-                "date_from": data["date_from"],
-                "date_to": data["date_to"],
+                "date_from": format_date(self.env, data["date_from"]),
+                "date_to": format_date(self.env, data["date_to"]),
                 "only_posted_moves": data["only_posted_moves"],
                 "hide_account_at_0": data["hide_account_at_0"],
                 "show_partner_details": data["show_partner_details"],
@@ -1046,3 +1047,7 @@ class TrialBalanceReport(models.AbstractModel):
             }
         )
         return res
+
+    @api.model
+    def get_report_values(self, docids, data):
+        return self._get_report_values(docids, data)
