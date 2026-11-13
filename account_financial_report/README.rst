@@ -106,6 +106,14 @@ Known issues / Roadmap
 Changelog
 =========
 
+18.0.1.6.0 (2026-11-13)
+-----------------------
+
+- Trial Balance: "Show partner details" keeps every account and only
+  adds the balance of each partner below the receivable and payable
+  accounts, sorted by partner name. The amounts are read with a fixed
+  number of queries instead of one per account.
+
 18.0.1.5.0 (2026-09-08)
 -----------------------
 
